@@ -1,0 +1,20 @@
+<?php
+
+namespace App\Models;
+
+use App\Models\Concerns\FlushesContentCache;
+use Illuminate\Database\Eloquent\Model;
+
+class SocialLink extends Model
+{
+    use FlushesContentCache;
+
+    protected $fillable = ['platform', 'url', 'icon', 'sort_order', 'is_active'];
+
+    protected $casts = ['is_active' => 'boolean'];
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true)->orderBy('sort_order');
+    }
+}

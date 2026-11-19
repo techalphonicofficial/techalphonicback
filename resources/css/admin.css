@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+@source "../views/admin/**/*.blade.php";
+@source "../views/components/admin/**/*.blade.php";
+@source "../js/admin.js";
+
+/*
+ * Admin design system. Brand matches the public site (logo teal); neutral, high-density "enterprise" surfaces.
+ * Every screen is built from the .a-* components below, so changing them restyles the whole panel.
+ */
+@theme {
+    --color-brand: #167B8B;
+    --color-brand-600: #12697A;
+    --color-brand-700: #0F5966;
+    --color-brand-50: #EBF6F8;
+    --color-brand-100: #D2EDF1;
+    --color-teal: #53AFBE;
+    --color-teal-50: #EEF8FA;
+    --color-amber: #FEB449;
+    --color-coral: #FE5C36;
+    --color-steel: #7C7C7C;
+    --color-ink: #0F1B21;
+    --color-ink-800: #1B2A31;
+    --color-night: #0A171C;
+    --color-night-800: #10232A;
+    --color-night-700: #183139;
+    --color-line: #E4E8EC;
+    --color-line-strong: #D3D9DF;
+    --color-mist: #F4F6F8;
+    --color-canvas: #F6F7F9;
+
+    --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+    --shadow-xs: 0 1px 2px rgb(15 27 33 / 0.05);
+    --shadow-card: 0 1px 2px rgb(15 27 33 / 0.04), 0 1px 3px rgb(15 27 33 / 0.03);
+    --shadow-pop: 0 12px 32px -8px rgb(15 27 33 / 0.18), 0 2px 6px rgb(15 27 33 / 0.06);
+    --shadow-primary: inset 0 1px 0 rgb(255 255 255 / 0.18), 0 1px 2px rgb(15 89 102 / 0.35);
+
+    --animate-fade-in: fade-in 0.18s ease-out both;
+    --animate-pop-in: pop-in 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
+    --animate-toast-in: toast-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+    @keyframes fade-in { from { opacity: 0; } }
+    @keyframes pop-in { from { opacity: 0; transform: translateY(-4px) scale(0.98); } }
+    @keyframes toast-in { from { opacity: 0; transform: translateY(-8px) scale(0.98); } }
+}
+
+@layer base {
+    html { -webkit-text-size-adjust: 100%; }
+    body { @apply bg-canvas font-sans text-[0.875rem] leading-normal text-slate-700 antialiased; font-feature-settings: "cv11", "ss01", "ss03"; }
+    h1, h2, h3, h4 { @apply text-ink; letter-spacing: -0.015em; }
+    [x-cloak] { display: none !important; }
+    :focus-visible { @apply outline-2 outline-offset-2 outline-brand; }
+    ::selection { @apply bg-brand/15 text-ink; }
+    code, kbd { @apply font-mono; }
+    /* Thin, quiet scrollbars */
+    * { scrollbar-width: thin; scrollbar-color: rgb(148 163 184 / 0.5) transparent; }
+}
+
+@layer components {
+    /* ---------- Surfaces ---------- */
+    .a-card { @apply rounded-xl border border-line bg-white shadow-[var(--shadow-card)]; }
+    .a-card-h { @apply flex min-h-14 items-center justify-between gap-3 border-b border-line px-5 py-3; }
+    .a-card-t { @apply text-[0.9rem] font-semibold tracking-[-0.01em] text-ink; }
+    .a-card-d { @apply mt-0.5 text-xs text-slate-500; }
+    .a-card-b { @apply p-5; }
+    .a-card-f { @apply flex items-center justify-end gap-2 rounded-b-xl border-t border-line bg-mist/60 px-5 py-3; }
+
+    /* Page header: title + description + actions */
+    .a-page-head { @apply mb-6 flex flex-wrap items-end justify-between gap-4; }
+    .a-page-title { @apply text-[1.375rem] font-semibold tracking-[-0.02em] text-ink; }
+    .a-page-desc { @apply mt-1 text-sm text-slate-500; }
+
+    /* ---------- Forms ---------- */
+    .a-label { @apply mb-1.5 block text-[0.8rem] font-medium text-slate-700; }
+    .a-help { @apply mt-1.5 text-xs text-slate-500; }
+    .a-input {
+        @apply block min-h-9 w-full rounded-lg border border-line-strong/80 bg-white px-3 py-[0.4375rem] text-sm text-ink shadow-[var(--shadow-xs)] transition placeholder:text-slate-400 hover:border-slate-400/60 focus:border-brand focus:ring-4 focus:ring-brand/12 focus:outline-none disabled:cursor-not-allowed disabled:bg-mist disabled:text-slate-500;
+    }
+    select.a-input:not([multiple]) { @apply appearance-none bg-[length:16px] bg-[right_0.6rem_center] bg-no-repeat pr-9; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 15 5 5 5-5M7 9l5-5 5 5'/%3E%3C/svg%3E"); }
+    textarea.a-input { @apply leading-relaxed; }
+    .a-input-icon { @apply relative; }
+    .a-input-icon > svg { @apply pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400; }
+    .a-input-icon > .a-input { @apply pl-9; }
+    .a-error { @apply mt-1.5 flex items-center gap-1 text-xs font-medium text-red-600; }
+    .a-check { @apply size-4 rounded border-line-strong text-brand shadow-[var(--shadow-xs)] focus:ring-brand/30; }
+
+    /* ---------- Buttons ---------- */
+    .a-btn { @apply inline-flex min-h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-[0.8125rem] font-semibold whitespace-nowrap transition duration-150 select-none focus-visible:outline-2 focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-50; }
+    .a-btn-primary { @apply bg-brand text-white shadow-[var(--shadow-primary)] hover:bg-brand-600 active:bg-brand-700; }
+    .a-btn-dark { @apply bg-ink text-white shadow-[var(--shadow-xs)] hover:bg-ink-800; }
+    .a-btn-light { @apply border border-line-strong/80 bg-white text-slate-700 shadow-[var(--shadow-xs)] hover:border-slate-300 hover:bg-mist hover:text-ink; }
+    .a-btn-ghost { @apply text-slate-600 hover:bg-mist hover:text-ink; }
+    .a-btn-danger { @apply border border-red-200 bg-white text-red-600 shadow-[var(--shadow-xs)] hover:border-red-300 hover:bg-red-50; }
+    .a-btn-sm { @apply min-h-7 rounded-md px-2.5 py-1 text-xs; }
+    .a-btn-icon { @apply aspect-square px-0; }
+
+    /* ---------- Tables ---------- */
+    .a-table { @apply w-full text-left text-[0.8125rem]; }
+    .a-table th { @apply sticky top-0 z-[1] border-b border-line bg-mist/80 px-4 py-2.5 text-[0.6875rem] font-semibold uppercase tracking-[0.06em] text-slate-500 backdrop-blur; }
+    .a-table td { @apply border-b border-line/80 px-4 py-3 align-middle text-slate-700; }
+    .a-table tbody tr:last-child td { @apply border-b-0; }
+    .a-table tbody tr { @apply transition-colors; }
+    .a-table tbody tr:hover td { @apply bg-brand-50/40; }
+
+    /* ---------- Badges / chips ---------- */
+    .a-badge { @apply inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold ring-1 ring-inset ring-current/10; }
+    .a-dot { @apply inline-block size-1.5 shrink-0 rounded-full bg-current; }
+    .a-chip { @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-2.5 py-1 text-xs font-medium text-slate-600; }
+    .a-kbd { @apply inline-flex min-w-5 items-center justify-center rounded border border-line-strong/80 bg-white px-1 font-sans text-[0.6875rem] font-medium text-slate-500 shadow-[0_1px_0_rgb(15_27_33/0.08)]; }
+
+    /* ---------- Tabs ---------- */
+    .a-tab { @apply relative -mb-px border-b-2 px-3 py-3 text-[0.8125rem] font-medium whitespace-nowrap transition; }
+    /* Segmented control (status filters etc.) */
+    .a-seg { @apply inline-flex flex-wrap gap-0.5 rounded-lg border border-line bg-mist p-0.5; }
+    .a-seg-item { @apply inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:text-ink; }
+    .a-seg-item.active { @apply bg-white text-ink shadow-[var(--shadow-xs)] ring-1 ring-line; }
+    .a-seg-count { @apply rounded bg-slate-200/70 px-1 text-[0.625rem] font-bold text-slate-600; }
+    .a-seg-item.active .a-seg-count { @apply bg-brand-50 text-brand-700; }
+
+    /* ---------- Sidebar (full 264px; "rail" = collapsed to icons on desktop, toggled from the top bar) ---------- */
+    .a-sidebar { @apply w-[264px] shrink-0; }
+    .a-nav-link { @apply relative flex h-8 items-center gap-2.5 rounded-md px-2.5 text-[0.8125rem] font-medium text-slate-400 transition hover:bg-white/[0.06] hover:text-white; }
+    .a-nav-link.active { @apply bg-white/[0.08] text-white; }
+    .a-nav-link.active::before { content: ""; @apply absolute -left-3 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-teal; }
+    .a-nav-group { @apply mt-4 mb-1 flex w-full items-center justify-between rounded-md px-2.5 py-1 text-[0.625rem] font-semibold uppercase tracking-[0.12em] text-slate-500 transition hover:text-slate-300; }
+
+    /* ---------- Feedback ---------- */
+    .a-empty { @apply flex flex-col items-center justify-center gap-2 px-6 py-14 text-center; }
+    .a-empty-icon { @apply grid size-11 place-items-center rounded-xl border border-line bg-mist text-slate-400; }
+    .a-alert { @apply flex items-start gap-3 rounded-xl border px-4 py-3 text-sm; }
+    .a-toast { @apply pointer-events-auto flex w-[22rem] max-w-[calc(100vw-2rem)] animate-toast-in items-start gap-3 rounded-xl border border-line bg-white p-3.5 text-sm shadow-[var(--shadow-pop)]; }
+
+    /* ---------- Misc ---------- */
+    .a-pop { @apply animate-pop-in rounded-xl border border-line bg-white p-1.5 shadow-[var(--shadow-pop)]; }
+    .a-menu-item { @apply flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[0.8125rem] font-medium text-slate-700 transition hover:bg-mist hover:text-ink; }
+    .a-avatar { @apply grid shrink-0 place-items-center rounded-full bg-gradient-to-br from-brand to-teal font-semibold text-white; }
+    .a-stat-icon { @apply grid size-9 shrink-0 place-items-center rounded-lg; }
+    .a-divider { @apply my-1.5 h-px bg-line; }
+
+    .jodit-container:not(.jodit_inline) { @apply rounded-lg! border-line-strong/80! shadow-[var(--shadow-xs)]; }
+    .jodit-toolbar__box:not(:empty) { @apply rounded-t-lg! border-line! bg-mist!; }
+}
+
+/* Collapsed sidebar ("rail", desktop only). Unlayered on purpose so it beats display utilities such as `flex`. */
+@media (min-width: 64rem) {
+    .rail .a-sidebar { width: 68px; }
+    .rail .a-rail-hide { display: none !important; }
+    .rail .rail-divider { display: block; }
+    .rail .a-nav-link { justify-content: center; padding-inline: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
