@@ -19,10 +19,15 @@ class MenuSeeder extends Seeder
 
         // ---------- Main menu with Services mega menu ----------
         $main = $this->menu('main', 'Main header menu');
-        $this->link($main, null, 'Home', 'custom', null, '/', 0);
-        $this->link($main, null, 'About', 'page', $page('about-us'), null, 1);
 
-        $services = $this->link($main, null, 'Services', 'custom', null, null, 2, ['is_mega' => true]);
+        $devMenu = $this->link($main, null, 'Development', 'service_category', ServiceCategory::where('slug', 'development')->first(), null, 0);
+        foreach (['website-development', 'custom-web-development', 'laravel-development', 'wordpress-development', 'shopify-development', 'app-development', 'ui-ux'] as $i => $slug) {
+            if ($s = $svc($slug)) {
+                $this->link($main, $devMenu->id, $s->name, 'service', $s, null, $i);
+            }
+        }
+
+        $services = $this->link($main, null, 'Services', 'custom', null, null, 1, ['is_mega' => true]);
         foreach (ServiceCategory::orderBy('sort_order')->get() as $ci => $cat) {
             $heading = $this->link($main, $services->id, $cat->name, 'service_category', $cat, null, $ci);
             foreach ($cat->services()->orderBy('sort_order')->get() as $si => $s) {
@@ -30,25 +35,25 @@ class MenuSeeder extends Seeder
             }
         }
 
-        $industries = $this->link($main, null, 'Industries', 'custom', null, '/industries/', 3);
+        $industries = $this->link($main, null, 'Industries', 'custom', null, '/industries/', 2);
         foreach (LandingPage::serviceIndustry()->published()->with('industry')->get() as $i => $lp) {
             $this->link($main, $industries->id, $lp->industry?->name ?? $lp->title, 'landing_page', $lp, null, $i);
         }
         $this->link($main, $industries->id, 'All industries', 'custom', null, '/industries/', 99);
 
-        $tech = $this->link($main, null, 'Technologies', 'custom', null, null, 4);
+        $tech = $this->link($main, null, 'Technologies', 'custom', null, null, 3);
         foreach (['laravel-development', 'wordpress-development', 'react-js-development', 'shopify-development', 'app-development'] as $i => $slug) {
             if ($s = $svc($slug)) {
                 $this->link($main, $tech->id, str_replace(' Development', '', $s->name), 'service', $s, null, $i);
             }
         }
-        $this->link($main, null, 'Portfolio', 'custom', null, '/portfolio/', 5);
-        $this->link($main, null, 'Blog', 'custom', null, '/blog/', 6);
-        $this->link($main, null, 'Contact', 'page', $page('contact'), null, 7);
+        $this->link($main, null, 'Packages', 'page', $page('packages'), null, 4);
+        $this->link($main, null, 'About', 'page', $page('about-us'), null, 5);
+        $this->link($main, null, 'Contact', 'page', $page('contact'), null, 6);
 
         // ---------- Footer columns ----------
         $company = $this->menu('footer_company', 'Footer — Company');
-        foreach ([['About us', 'page', $page('about-us')], ['Portfolio', 'custom', '/portfolio/'], ['Case studies', 'custom', '/case-studies/'], ['Packages', 'page', $page('packages')], ['Contact', 'page', $page('contact')]] as $i => [$l, $t, $target]) {
+        foreach ([['About us', 'page', $page('about-us')], ['Portfolio', 'custom', '/portfolio/'], ['Case studies', 'custom', '/case-studies/'], ['Packages', 'page', $page('packages')], ['Blog', 'custom', '/blog/'], ['Contact', 'page', $page('contact')]] as $i => [$l, $t, $target]) {
             $this->link($company, null, $l, $t, is_string($target) ? null : $target, is_string($target) ? $target : null, $i);
         }
 

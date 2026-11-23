@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\ContentStatus;
 use App\Enums\LandingPageType;
 use App\Models\Faq;
+use App\Models\FaqCategory;
 use App\Models\Industry;
 use App\Models\LandingPage;
 use App\Models\Location;
@@ -15,8 +16,8 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
 /**
- * Recreates the programmatic SEO URLs that exist on the current site (published, indexable, unique copy)
- * and adds a few generator drafts to demonstrate the review workflow.
+ * Populates the programmatic SEO & legacy location/industry landing pages with their authentic content
+ * from https://seashell-stork-114708.hostingersite.com/.
  */
 class LandingPageSeeder extends Seeder
 {
@@ -24,72 +25,448 @@ class LandingPageSeeder extends Seeder
     {
         $gen = app(LandingPageGenerator::class);
         $seo = Service::where('slug', 'search-engine-optimization')->firstOrFail();
-        $locationFaq = Faq::where('question', 'like', 'Will SEO work for my business in%')->value('id');
 
         $legacy = [
-            // [type, location slug, industry slug, legacy slug, h1, intro, extra section]
-            [LandingPageType::ServiceLocation, 'india', null, 'seo-company-in-india', 'SEO Company in India',
-                '<p>Tech Alphonic is an SEO company in India helping brands across the country win more organic traffic and enquiries. From national ecommerce stores to multi-city service businesses, we build search strategies around real customer demand — and report on leads, not just rankings.</p>',
-                ['heading' => 'National reach, local relevance', 'content' => '<p>Ranking across India means balancing national keywords with city-level intent. We combine strong core service pages with carefully researched location pages, so you appear for both “SEO services” and “SEO company in Pune” without creating thin duplicate content.</p>']],
-            [LandingPageType::ServiceLocation, 'noida', null, 'seo-company-in-noida', 'SEO Company in Noida',
-                '<p>Looking for an SEO company in Noida you can actually meet? Our team works from Sector 63, helping Noida and NCR businesses — from IT firms in Sector 62 to real-estate developers along the Expressway — rank higher and generate qualified leads.</p>',
-                ['heading' => 'Why Noida businesses choose a local SEO partner', 'content' => '<p>Noida’s market is crowded with agencies and aggregators. Working with a local team means strategy sessions in person, faster communication and a sharper understanding of how customers in Noida, Greater Noida and Ghaziabad search.</p>']],
-            [LandingPageType::ServiceIndustry, null, 'moving-company', 'seo-for-moving-company', 'SEO for Moving Companies',
-                '<p>Packers and movers compete for urgent, high-intent searches — often against aggregators and fake listings. Our SEO for moving companies focuses on route pages, Google Business Profile visibility and trust signals that turn searchers into booked moves.</p>',
-                ['heading' => 'Route pages that convert', 'content' => '<p>Customers search for specific moves, like “packers and movers Noida to Bangalore”. We build helpful route pages with pricing guidance, checklists and FAQs so you rank for these valuable searches.</p>']],
-            [LandingPageType::ServiceIndustry, null, 'pest-control', 'seo-for-pest-control-companies', 'SEO for Pest Control Companies',
-                '<p>When someone finds termites or cockroaches, they search and call within minutes. Our SEO for pest control companies puts you in the map pack and on page one for service-specific, emergency and “near me” searches across every area you serve.</p>',
-                ['heading' => 'Service-specific visibility', 'content' => '<p>Separate, detailed pages for termite control, bed-bug treatment, mosquito control and commercial pest management help you rank for exactly what customers need — and answer their questions before they call.</p>']],
-            [LandingPageType::ServiceIndustry, null, 'plumbing', 'plumbing-seo-services', 'Plumbing SEO Services',
-                '<p>Plumbing customers rarely compare ten websites — they call the first trustworthy business they find. Our plumbing SEO services focus on local rankings, reviews and click-to-call so your phone rings for the jobs you want.</p>',
-                ['heading' => 'Built for emergency searches', 'content' => '<p>We optimise for urgent queries like “leak repair near me”, make your phone number prominent on mobile and track every call so you can see exactly which searches generate jobs.</p>']],
-            [LandingPageType::ServiceIndustry, null, 'hospitality', 'hospitality-seo-services', 'Hospitality SEO Services',
-                '<p>Hotels and restaurants lose margin to booking platforms. Our hospitality SEO services grow direct bookings by improving visibility in maps, local packs and destination searches — with rich results that show ratings, prices and availability.</p>',
-                ['heading' => 'More direct bookings', 'content' => '<p>We pair technical SEO and structured data with destination content and review strategy so guests find you — and book directly.</p>']],
-            [LandingPageType::ServiceIndustry, null, 'logistics', 'seo-for-transport-and-logistics', 'SEO for Transport & Logistics Companies',
-                '<p>Logistics buyers research carefully before shortlisting partners. Our SEO for transport and logistics companies builds authority around your services, lanes and capabilities so procurement teams find you at the start of their search.</p>',
-                ['heading' => 'B2B search strategy', 'content' => '<p>Service, lane and industry pages — supported by case studies and clear capability information — help you rank for high-value B2B queries and generate RFQs.</p>']],
+            [
+                'type' => LandingPageType::ServiceLocation,
+                'location' => 'india',
+                'industry' => null,
+                'slug' => 'seo-company-in-india',
+                'title' => 'SEO Company in India',
+                'h1' => 'Best SEO Company [[In India]]',
+                'hero_subheading' => 'Best SEO Company in India',
+                'intro' => '<p>Tech Alphonic, India’s trusted SEO Company, provides effective digital growth solutions for ambitious brands. With deep sector experience and a dedicated team of certified SEO specialists, we help businesses ascend search engine rankings, increase ROI, and generate targeted organic visitors on Google, Bing, Yahoo, and AI-powered search platforms.</p>',
+                'content' => <<<'HTML'
+<h2>Best SEO Company in India to Enhance Traffic, Sales &amp; Leads</h2>
+<p>If you are looking for the best SEO Company in India that can drive qualified traffic, increase sales, and produce high-quality leads, Tech Alphonic is the partner you can bank on. We offer result-driven, personalized SEO strategies built for measurable growth and lasting organic authority.</p>
+<p>According to current digital marketing benchmarks, over 53% of all website traffic is generated by organic search. Tech Alphonic keeps your brand ahead of changing markets with modern, AI-informed SEO tactics — covering comprehensive keyword research, advanced on-page and technical optimization, authoritative link building, competitor gap analysis, and niche-relevant content strategies across healthcare, law, education, e-commerce, travel, and real estate.</p>
+<p>We also offer flexible, scalable SEO packages in India for startups, SMBs, and large enterprises so you receive enterprise-grade search optimization aligned with your budget and revenue goals.</p>
+HTML,
+                'sections' => [
+                    [
+                        'heading' => 'Search Engine Optimization Services We Provide Across India',
+                        'content' => '<ul><li><strong>National SEO:</strong> Best suited for reaching a large, nationwide audience — ideal for corporations and brands competing for high-volume national keywords.</li><li><strong>Local SEO:</strong> Made for companies capturing regional clientele through Google Business Profile optimization, local packs, and geo-targeted citations.</li><li><strong>Small Business SEO:</strong> Cost-effective search visibility and brand authority tailored for startups and growing local service businesses.</li><li><strong>E-Commerce SEO:</strong> Product, category, and technical optimization designed for online stores that want to attract high-intent buyers and grow transactions.</li></ul>',
+                    ],
+                    [
+                        'heading' => 'Things You Need to Know Before Hiring an SEO Agency in India',
+                        'content' => '<p>With search behavior evolving rapidly — from AI-driven SERPs and AI Overviews to voice search and Google’s E-E-A-T guidelines — choosing the right SEO partner is critical. Tech Alphonic uses industry-leading tools including Ahrefs, Moz, SEMrush, Screaming Frog, and Google Search Console to fix slow loading speeds, crawl bottlenecks, and thin content while earning authoritative backlinks and rich SERP visibility.</p>',
+                    ],
+                ],
+                'local_benefits' => [
+                    ['title' => 'Improve Visibility Online', 'text' => 'Direct quality organic traffic to your website by securing top positions across Google and AI-powered search results.', 'icon' => 'globe'],
+                    ['title' => 'Higher Keyword Rankings', 'text' => 'Tailor-made strategies focused on the most profitable, high-intent commercial queries in your industry.', 'icon' => 'chart'],
+                    ['title' => 'AI Overview & Local Lead Growth', 'text' => 'Structured data and geo-targeted optimization that boost visibility in both local packs and AI Overviews.', 'icon' => 'cpu'],
+                    ['title' => 'Flexible SEO Packages in India', 'text' => 'Reasonably priced, scalable plans tailored for startups, SMBs, and enterprise brands with no long-term lock-in.', 'icon' => 'layers'],
+                    ['title' => 'Proven Across All Industries', 'text' => 'Tried-and-tested organic growth frameworks across E-Commerce, Healthcare, Real Estate, Education, Hospitality, and SaaS.', 'icon' => 'shield'],
+                    ['title' => 'High-Intent Lead Generation', 'text' => 'We turn search visitors into qualified enquiries, phone calls, and returning customers.', 'icon' => 'rocket'],
+                ],
+                'process' => [
+                    ['title' => 'Industry & Competitor Analysis', 'text' => 'In-depth evaluation of your industry landscape, target audience behavior, and top organic competitors.'],
+                    ['title' => 'High-Converting Keyword Strategy', 'text' => 'Identification of commercial, local, and informational keywords that drive qualified traffic.'],
+                    ['title' => 'Technical & On-Page Audit', 'text' => 'Complete optimization of site speed, Core Web Vitals, internal links, meta tags, and schema markup.'],
+                    ['title' => 'Content & Authority Link Building', 'text' => 'Creation of E-E-A-T content paired with high-authority backlinks, digital PR, and industry citations.'],
+                ],
+                'why_choose_us' => [
+                    ['title' => 'Proven Industry Experience', 'text' => 'Years of hands-on SEO expertise helping hundreds of businesses across sectors achieve sustainable page-one growth.', 'icon' => 'award'],
+                    ['title' => '24×7 Client Assistance — No Lock-In Contracts', 'text' => 'Dedicated support via WhatsApp, email, and phone with flexible month-to-month engagement built on results.', 'icon' => 'users'],
+                    ['title' => 'Result-Oriented Strategies', 'text' => 'Data-backed SEO campaigns focused on rankings, organic traffic, and real business leads.', 'icon' => 'chart'],
+                    ['title' => 'Advanced SEO Tools & Insights', 'text' => 'Powered by Ahrefs, SEMrush, Screaming Frog, GA4, and Search Console for transparent, actionable reporting.', 'icon' => 'cpu'],
+                ],
+                'cta_heading' => 'Ready to Dominate Google Rankings in India?',
+                'cta_description' => 'Get a free SEO audit to find out exactly where your website stands on Google and what steps will take it to the top.',
+                'faqs' => [
+                    ['Is Tech Alphonic suitable for small businesses and startups in India?', '<p>Yes, Tech Alphonic works with businesses of all sizes by offering tailored SEO solutions and flexible packages aligned with the budgets and growth objectives of small businesses, startups, and enterprises.</p>'],
+                    ['Can any SEO company in India guarantee a #1 ranking on Google?', '<p>No ethical SEO agency can guarantee a #1 position because Google’s algorithm is outside any agency’s control. However, we use proven white-hat strategies and transparent reporting to deliver consistent ranking and traffic improvements.</p>'],
+                    ['What is the typical timeframe to see SEO results at Tech Alphonic?', '<p>SEO results usually begin appearing within 3 to 6 months depending on industry competition and website health, with organic traffic and leads continuing to compound as strategies are optimized.</p>'],
+                    ['Does Tech Alphonic provide transparent SEO reporting?', '<p>Yes, clients receive regular, detailed reports covering keyword rankings, organic traffic, backlinks acquired, and conversion metrics.</p>'],
+                    ['Can Tech Alphonic support Local SEO for my company in India?', '<p>Yes, Tech Alphonic specializes in Local SEO — optimizing your Google Business Profile, local citations, and city-specific landing pages to attract customers from your target regions across India.</p>'],
+                ],
+            ],
+            [
+                'type' => LandingPageType::ServiceLocation,
+                'location' => 'noida',
+                'industry' => null,
+                'slug' => 'seo-company-in-noida',
+                'title' => 'SEO Company in Noida',
+                'h1' => 'SEO Company in Noida — [[Dominate Google & Grow Your Business]]',
+                'hero_subheading' => 'Noida’s Trusted SEO Partner',
+                'intro' => '<p>TechAlphonic is Noida’s trusted SEO company, working directly from Sector 63, Noida. We combine 7+ years of SEO expertise with the latest AI optimization techniques to help local businesses, startups, and enterprises rank on top of Google, drive qualified traffic, and turn visitors into real customers.</p>',
+                'content' => <<<'HTML'
+<h2>Why SEO Is Essential for Your Noida Business</h2>
+<p>Today’s AI-driven search landscape requires more than basic keyword stuffing to achieve high rankings — it requires strategy, search intent alignment, and technical excellence. You can secure resilient website rankings and high-quality visitors with Tech Alphonic’s tailored Noida SEO packages for startups, SMEs, and enterprises.</p>
+<p>By utilizing proven white-hat SEO methods, AI-enabled tools, and hands-on knowledge of the Noida and Delhi-NCR market, we ensure your brand stays ahead across Google Search, Google Maps, ChatGPT, and AI Overviews.</p>
+<ul>
+    <li><strong>7+ Years of SEO Experience:</strong> Proven track record across diverse industries in Noida, Greater Noida, and NCR.</li>
+    <li><strong>Results-Oriented Execution:</strong> Data-driven SEO strategies built around measurable traffic and lead growth.</li>
+    <li><strong>Tailored SEO Packages:</strong> Custom plans starting from Starter and Growth to Enterprise SEO.</li>
+    <li><strong>Traffic-to-Leads Optimization:</strong> Conversion-focused landing pages that turn search visitors into business enquiries.</li>
+    <li><strong>Next-Generation AI Search Readiness:</strong> Optimization for Google SGE/AI Overviews, ChatGPT, and semantic search.</li>
+</ul>
+HTML,
+                'sections' => [
+                    [
+                        'heading' => 'Result-Driven SEO Services for All Business Types in Noida',
+                        'content' => '<ul><li><strong>Local SEO Services:</strong> Get found easily by nearby customers in Noida &amp; NCR through Google Business Profile optimization, NAP consistency, and local keyword targeting.</li><li><strong>E-Commerce SEO Services:</strong> Boost product visibility and online store conversions across Shopify, WooCommerce, and custom platforms.</li><li><strong>Enterprise SEO Services:</strong> Scalable national and multi-location SEO solutions for high-performing brands and corporate HQs in Noida.</li><li><strong>YouTube &amp; Video SEO:</strong> Optimize channel metadata, titles, and playlists for higher video discovery and engagement.</li><li><strong>App Store Optimization (ASO):</strong> Improve app visibility and downloads on Google Play and the Apple App Store.</li><li><strong>International SEO Services:</strong> Expand beyond borders with multi-region and multi-language search optimization managed from our Noida headquarters.</li></ul>',
+                    ],
+                ],
+                'local_benefits' => [
+                    ['title' => 'Comprehensive Competitor Analysis', 'text' => 'We analyze competitor keywords, backlink profiles, and content gaps in the Noida market to give your business a clear edge.', 'icon' => 'search'],
+                    ['title' => 'In-Depth Technical Website Audit', 'text' => 'We uncover and fix root causes affecting rankings, page speed, Core Web Vitals, indexing, and broken links.', 'icon' => 'cpu'],
+                    ['title' => 'Strategic Keyword Finalization', 'text' => 'We target low-competition, high-intent, conversion-focused keywords aligned with your Noida and national buyers.', 'icon' => 'target'],
+                    ['title' => 'Complete On-Page Optimization', 'text' => 'Optimization of heading tags, metadata, internal linking, content structure, and image attributes for maximum relevance.', 'icon' => 'layers'],
+                    ['title' => 'Technical SEO & Schema Markup', 'text' => 'Mobile responsiveness, XML sitemaps, robots.txt, llms.txt readiness, and rich JSON-LD structured data.', 'icon' => 'code'],
+                    ['title' => 'Landing Page Conversion Optimization', 'text' => 'Refining layout, copy, CTAs, and enquiry forms to maximize leads and ROI from organic search visitors.', 'icon' => 'rocket'],
+                ],
+                'process' => [
+                    ['title' => 'Free SEO Audit', 'text' => 'We start with a complete audit of your website — identifying technical issues, keyword gaps, and competitor strategies in the Noida market.'],
+                    ['title' => 'Strategy Build', 'text' => 'Custom SEO strategy designed for your Noida niche — keyword research, competitor analysis, and a 6-month roadmap with clear milestones.'],
+                    ['title' => 'Implementation', 'text' => 'On-page optimization, technical fixes, content creation, and local SEO — all executed by experienced Noida SEO specialists.'],
+                    ['title' => 'Authority Link Building', 'text' => 'We build high-authority backlinks from niche-relevant sources to strengthen your domain and accelerate rankings in Noida SERPs.'],
+                    ['title' => 'Track & Improve', 'text' => 'Monthly reports on keyword rankings, traffic, and leads. We continuously refine the strategy based on real campaign data.'],
+                ],
+                'why_choose_us' => [
+                    ['title' => 'Businesses Experience Real Growth', 'text' => 'We don’t just chase vanity rankings — our SEO programs increase organic traffic and qualified leads for companies in Noida and globally.', 'icon' => 'chart'],
+                    ['title' => 'Customized SEO for Every Business', 'text' => 'Every SEO plan is custom-built around your specific objectives, audience research, and lead generation goals.', 'icon' => 'sliders'],
+                    ['title' => 'Competitive Pricing for Maximum Value', 'text' => 'Transparent, affordable SEO packages starting from ₹9,999/month with no hidden charges and maximum ROI.', 'icon' => 'shield'],
+                ],
+                'cta_heading' => 'Ready to Dominate Google Searches in Noida?',
+                'cta_description' => 'Get your free SEO audit today and see exactly how our Sector 63, Noida team will take your business to the top of Google.',
+                'faqs' => [
+                    ['Which is the best SEO agency in Noida?', '<p>Tech Alphonic is one of the most trusted SEO companies in Noida, located in Sector 63, offering customized data-driven strategies for long-term organic growth and measurable lead generation across industries.</p>'],
+                    ['How much does an SEO company cost in Noida?', '<p>SEO rates depend on your website’s size, industry competition, and target goals. At Tech Alphonic, our Noida SEO packages start at ₹9,999/month with flexible Growth and Enterprise options for SMEs and large brands.</p>'],
+                    ['How can I select the best SEO company to help my business in Noida?', '<p>Look for proven ranking case studies, transparent monthly reporting, white-hat practices, and an accessible local team that understands your business goals — all qualities central to Tech Alphonic’s approach.</p>'],
+                    ['What makes Tech Alphonic unique compared to other SEO companies in Noida?', '<p>Tech Alphonic focuses on return on investment and qualified leads rather than rankings alone — combining technical SEO, content engineering, local GMB optimization, and AI search readiness (AEO/GEO).</p>'],
+                    ['Do you provide customized SEO packages for Noida businesses?', '<p>Yes. We build custom SEO packages tailored to your exact business model — whether you are a local service provider in Noida, an e-commerce store, or a B2B enterprise.</p>'],
+                    ['How does SEO help grow my Noida company?', '<p>SEO places your business at the top of Google Search and Google Maps when nearby and national buyers search for your services, driving consistent organic enquiries and brand credibility.</p>'],
+                ],
+            ],
+            [
+                'type' => LandingPageType::ServiceIndustry,
+                'location' => null,
+                'industry' => 'moving-company',
+                'slug' => 'seo-for-moving-company',
+                'title' => 'SEO for Moving Companies',
+                'h1' => 'Proven SEO for Moving Company Services – [[Rank Higher, Get More Customers]]',
+                'hero_subheading' => 'SEO for Moving Companies',
+                'intro' => '<p>When people or businesses plan to relocate, they turn directly to Google to find reliable packers and movers. Tech Alphonic builds personalized, custom SEO strategies for relocation companies — covering home shifting, office relocation, and long-distance moving — so your business connects with high-intent customers at the exact moment they are ready to book.</p>',
+                'content' => <<<'HTML'
+<h2>Why Moving Businesses Need Specialized SEO</h2>
+<p>Thousands of customers search for packers and movers every month. If your moving company is not visible on page one and in the Google Local Pack, those leads go straight to your competitors or aggregator portals. Our SEO for moving companies keeps your brand visible, credible, and first in line for direct quote requests.</p>
+HTML,
+                'sections' => [
+                    [
+                        'heading' => 'Full SEO Services for Moving Companies',
+                        'content' => '<ol><li><strong>Extensive Keyword Research:</strong> Targeting local-intent searches (“packers and movers near me”), service keywords (“office relocation”, “intercity movers”), and competitor keyword gaps.</li><li><strong>On-Page Website Optimization:</strong> High-CTR meta titles &amp; descriptions, service and route page copy optimization, internal linking, and MovingCompany schema markup.</li><li><strong>Technical SEO Improvements:</strong> Fast mobile page speed, Core Web Vitals optimization, crawl error fixes, and secure HTTPS architecture.</li><li><strong>Local SEO Strength for Movers:</strong> Google Business Profile optimization, accurate local citations (JustDial, Sulekha, IndiaMART), geo-targeted city/route landing pages, and review management.</li><li><strong>Content Marketing for Movers:</strong> Relocation checklists, moving cost guides, dedicated route pages, and customer case studies that build trust.</li><li><strong>Authority Link Building:</strong> Industry-relevant backlinks from real estate, relocation, and local business directories.</li><li><strong>Transparent Monitoring &amp; Reporting:</strong> Monthly tracking of keyword rankings, phone calls, quote form submissions, and organic traffic growth.</li></ol>',
+                    ],
+                ],
+                'local_benefits' => [
+                    ['title' => 'Increased Local Visibility', 'text' => 'Appear at the top of Google Search and Google Maps whenever customers look for relocation services in your service areas.', 'icon' => 'map-pin'],
+                    ['title' => 'Better Qualified Moving Leads', 'text' => 'Connect directly with households and corporate buyers actively searching for quotes without paying per-lead aggregator commissions.', 'icon' => 'users'],
+                    ['title' => 'Greater Brand Trust', 'text' => 'Strong organic rankings, verified reviews, and clear route/pricing pages establish instant credibility over unverified operators.', 'icon' => 'shield'],
+                    ['title' => 'Higher Quote Conversions', 'text' => 'Mobile-optimized pages with prominent call, WhatsApp, and quote-calculator CTAs turn visitors into booked moves.', 'icon' => 'chart'],
+                ],
+                'process' => [
+                    ['title' => 'Discovery & Goal Setting', 'text' => 'Understanding your service routes, fleet capacity, current search standing, and local competition.'],
+                    ['title' => 'Comprehensive SEO Audit', 'text' => 'Identifying technical weaknesses, local citation gaps, and high-ROI route keyword opportunities.'],
+                    ['title' => 'Custom SEO Roadmap', 'text' => 'Building a moving-industry SEO blueprint covering city pages, route pages, and Google Business Profiles.'],
+                    ['title' => 'Implementation Phase', 'text' => 'Executing on-page, technical, local SEO, content creation, and authority link building.'],
+                    ['title' => 'Monitoring & Refinement', 'text' => 'Tracking calls, quote enquiries, and rankings every month to scale your highest-converting routes.'],
+                ],
+                'why_choose_us' => [
+                    ['title' => 'Specialization in Moving Businesses', 'text' => 'We understand the seasonality, route-based search intent, and aggregator competition unique to packers and movers.', 'icon' => 'truck'],
+                    ['title' => 'Hyper-Local & Multi-City SEO Focus', 'text' => 'Geo-targeted strategies that rank your branches across Delhi-NCR, Noida, Gurgaon, Ghaziabad, and pan-India routes.', 'icon' => 'map-pin'],
+                    ['title' => 'Result-Driven & Transparent', 'text' => 'We measure success by quote requests, phone calls, and booked moves — backed by clear monthly progress reports.', 'icon' => 'chart'],
+                ],
+                'cta_heading' => 'Ready to Generate More Direct Moving Leads?',
+                'cta_description' => 'Get a free SEO audit for your moving company and start ranking above aggregators for your most profitable routes.',
+                'faqs' => [],
+            ],
+            [
+                'type' => LandingPageType::ServiceIndustry,
+                'location' => null,
+                'industry' => 'pest-control',
+                'slug' => 'seo-for-pest-control-companies',
+                'title' => 'SEO for Pest Control Companies',
+                'h1' => 'SEO for [[Pest Control Companies]]',
+                'hero_subheading' => '#1 SEO for Pest Control Businesses',
+                'intro' => '<p>Search Engine Optimization (SEO) for pest control companies optimizes your website and local presence so homeowners and commercial facility managers find you first when they need urgent pest treatment. Our specialized pest control SEO strategies help your business rank in the local map pack, attract nearby customers, and generate high-quality service calls.</p>',
+                'content' => <<<'HTML'
+<h2>Stand Out in Competitive Local Pest Control Searches</h2>
+<p>When a homeowner discovers termites, bed bugs, cockroaches, or rodents, they search on mobile and call one of the top results immediately. We build dedicated service and location pages paired with Google Business Profile optimization so your pest control company captures those high-intent emergency and recurring contract leads.</p>
+HTML,
+                'sections' => [
+                    [
+                        'heading' => 'SEO Services We Provide for Pest Control Companies',
+                        'content' => '<ul><li><strong>Keyword Research &amp; Optimization:</strong> High-intent local keywords (“pest control near me”, “termite treatment [city]”) and service-specific keywords (“bed bug extermination”, “rodent control”, “commercial pest management”).</li><li><strong>On-Page SEO:</strong> Compelling title tags, meta descriptions, service page copy, FAQs addressing treatment safety, and LocalBusiness schema markup.</li><li><strong>Technical SEO:</strong> Fast mobile page speed, Core Web Vitals optimization, mobile-first click-to-call UX, and clean crawl/index structure.</li><li><strong>Local SEO &amp; Google Business Profile:</strong> Complete GMB optimization with service areas, treatment photos, review generation, and local directory citations.</li><li><strong>Content Marketing:</strong> Seasonal pest prevention guides, treatment comparison articles, and commercial compliance pages that build homeowner and B2B trust.</li><li><strong>Authority Link Building:</strong> High-quality backlinks from home-service directories, property management blogs, and local associations.</li></ul>',
+                    ],
+                ],
+                'local_benefits' => [
+                    ['title' => 'Increased Online Visibility', 'text' => 'Rank on page one and in the Google Local 3-Pack for residential and commercial pest control searches.', 'icon' => 'search'],
+                    ['title' => 'More Local Service Calls & Leads', 'text' => 'Capture urgent “near me” searches from homeowners, societies, restaurants, and warehouses in your service radius.', 'icon' => 'phone'],
+                    ['title' => 'Enhanced Brand Credibility', 'text' => 'Build homeowner trust with authoritative treatment pages, safety FAQs, and verified customer reviews.', 'icon' => 'shield'],
+                    ['title' => 'Higher Conversion Rates', 'text' => 'Mobile-friendly pages with instant call and WhatsApp booking buttons convert searchers into scheduled inspections.', 'icon' => 'chart'],
+                ],
+                'process' => [
+                    ['title' => 'Discovery & Goal Setting', 'text' => 'Understanding your treatment services, target pin codes/cities, and local competitor landscape.'],
+                    ['title' => 'SEO Audit & Keyword Planning', 'text' => 'Auditing your site and mapping keywords for every pest type (termites, cockroaches, bed bugs, rodents, mosquitoes) and locality.'],
+                    ['title' => 'Implementation Phase', 'text' => 'Executing technical fixes, service & locality landing pages, Google Business Profile optimization, and citation building.'],
+                    ['title' => 'Monitoring & Analytics', 'text' => 'Tracking phone calls, inspection bookings, and local pack rankings with transparent monthly reports.'],
+                ],
+                'why_choose_us' => [
+                    ['title' => 'Home-Service & Pest Control Expertise', 'text' => 'We understand seasonal pest demand spikes and emergency mobile search behavior across Indian cities.', 'icon' => 'bug'],
+                    ['title' => 'Hyper-Local Map Pack Focus', 'text' => 'Dedicated Google Business Profile and locality-page strategies that put you in front of nearby customers.', 'icon' => 'map-pin'],
+                    ['title' => 'Transparent Weekly & Monthly Reporting', 'text' => 'Clear visibility into rankings, calls, and enquiries generated from every service area.', 'icon' => 'chart'],
+                ],
+                'cta_heading' => 'Ready to Grow Your Pest Control Business?',
+                'cta_description' => 'Let Tech Alphonic rank your pest control company on page 1 — and keep your inspection schedule full month after month.',
+                'faqs' => [
+                    ['How long does SEO take to show results for pest control businesses?', '<p>SEO results for pest control companies typically begin showing in 60–90 days for local terms, with strong page-1 rankings appearing within 3–6 months and compounding over time.</p>'],
+                    ['Do you provide content for pest control service pages?', '<p>Yes — our packages include keyword-optimized content creation for service pages (termite, bed bug, cockroach, rodent, mosquito control), blog posts, FAQs, and geo-targeted landing pages written by our in-house team.</p>'],
+                    ['Do you optimize Google Business Profile for pest control companies?', '<p>Absolutely. Google Business Profile optimization is a core part of our local SEO service — including category selection, service area configuration, photo uploads, review management, and Q&amp;A optimization.</p>'],
+                    ['Do you work with pest control businesses outside Noida and Delhi-NCR?', '<p>Yes! We work with pest control companies across India — including Mumbai, Bangalore, Hyderabad, Pune, Chennai, and beyond — with strategies custom-built around each city’s competition and search demand.</p>'],
+                ],
+            ],
+            [
+                'type' => LandingPageType::ServiceIndustry,
+                'location' => null,
+                'industry' => 'plumbing',
+                'slug' => 'plumbing-seo-services',
+                'title' => 'Plumbing SEO Services',
+                'h1' => 'Boost Your Plumbing Business with [[Expert SEO Services]]',
+                'hero_subheading' => 'Plumbing SEO Services',
+                'intro' => '<p>SEO for plumbing companies optimizes your website and local search presence so homeowners and commercial properties find and call your business first. Our specialized plumbing SEO services help you dominate local map results, increase emergency and scheduled service inquiries, and build a trusted online reputation.</p>',
+                'content' => <<<'HTML'
+<h2>Turn Urgent Plumbing Searches Into Booked Jobs</h2>
+<p>Plumbing customers rarely browse ten websites — when a pipe leaks or a drain clogs, they search on their phone and call the first trustworthy plumber they see in Google Maps or at the top of organic results. We optimize every touchpoint so your phone rings for your highest-margin plumbing services.</p>
+HTML,
+                'sections' => [
+                    [
+                        'heading' => 'Our Plumbing SEO Services',
+                        'content' => '<ul><li><strong>Keyword Research &amp; Optimization:</strong> Local keywords (“plumber [city]”, “emergency plumbing [city]”, “drain cleaning near me”) and service-specific keywords (“pipe repair”, “water heater installation”, “leak detection”, “bathroom fitting”).</li><li><strong>On-Page SEO:</strong> High-CTR title tags and meta descriptions, dedicated service pages, pricing/FAQ sections, and Plumber schema markup.</li><li><strong>Technical SEO:</strong> Fast mobile load times, responsive click-to-call design, and clean crawlability and indexing.</li><li><strong>Local SEO:</strong> Google Business Profile optimization, accurate NAP citations across local directories, review generation, and neighborhood landing pages.</li><li><strong>Content Marketing:</strong> Helpful plumbing maintenance guides, emergency troubleshooting tips, and project galleries that build homeowner trust.</li><li><strong>Link Building &amp; Reporting:</strong> Quality backlinks from home-improvement and local directories paired with monthly call and ranking reports.</li></ul>',
+                    ],
+                ],
+                'local_benefits' => [
+                    ['title' => 'Increased Online Visibility', 'text' => 'Rank at the top of search results when homeowners and facility managers search for plumbing services in your area.', 'icon' => 'search'],
+                    ['title' => 'Higher Service Inquiries & Calls', 'text' => 'Mobile-first pages with prominent click-to-call and WhatsApp buttons convert emergency visitors into booked jobs.', 'icon' => 'phone'],
+                    ['title' => 'Enhanced Local Map Presence', 'text' => 'Dominate the Google Local 3-Pack across every neighborhood and sector your plumbing team serves.', 'icon' => 'map-pin'],
+                    ['title' => 'Improved Local Reputation', 'text' => 'Build lasting credibility with verified customer reviews, clear service descriptions, and authoritative local backlinks.', 'icon' => 'shield'],
+                ],
+                'process' => [
+                    ['title' => 'Strategic Consultation', 'text' => 'We understand your plumbing services, service radius, average job value, and growth targets.'],
+                    ['title' => 'Detailed Keyword & Local Audit', 'text' => 'We audit your website and Google Business Profile against top-ranking local plumbing competitors.'],
+                    ['title' => 'On-Page & Local SEO Execution', 'text' => 'We optimize service pages, mobile speed, schema markup, local citations, and GMB listings.'],
+                    ['title' => 'Content & Review Authority', 'text' => 'We publish service/neighborhood pages and implement review-generation workflows to boost map rankings.'],
+                    ['title' => 'Performance Tracking & Scaling', 'text' => 'Monthly reporting on keyword rankings, organic traffic, and phone/WhatsApp enquiries.'],
+                ],
+                'why_choose_us' => [
+                    ['title' => 'Home-Services Industry Expertise', 'text' => 'Extensive experience ranking local home-service and plumbing businesses for emergency and scheduled queries.', 'icon' => 'wrench'],
+                    ['title' => 'Customized Local Strategies', 'text' => 'Tailored SEO plans built around your specific service areas, fleet size, and target job types.', 'icon' => 'sliders'],
+                    ['title' => 'Data-Driven & Transparent', 'text' => 'Clear monthly reporting focused on phone calls, service bookings, and local pack visibility.', 'icon' => 'chart'],
+                ],
+                'cta_heading' => 'Ready to Grow Your Plumbing Business?',
+                'cta_description' => 'Let Tech Alphonic help your plumbing company reach more local customers, rank higher on Google Maps, and generate more daily service calls.',
+                'faqs' => [],
+            ],
+            [
+                'type' => LandingPageType::ServiceIndustry,
+                'location' => null,
+                'industry' => 'hospitality',
+                'slug' => 'hospitality-seo-services',
+                'title' => 'Hospitality SEO Services',
+                'h1' => 'Hospitality [[SEO Services]]',
+                'hero_subheading' => '#1 SEO for Hotels, Resorts & Restaurants',
+                'intro' => '<p>Hospitality SEO is the practice of optimizing your website and online presence to enhance visibility in search engine results pages. For hotels, resorts, restaurants, and vacation rentals, effective SEO helps attract more guests, increase direct commission-free bookings, and build a strong online reputation.</p>',
+                'content' => <<<'HTML'
+<h2>Grow Direct Bookings and Reduce OTA Commission Dependency</h2>
+<p>Hotels, resorts, and restaurants often lose a large share of their margins to third-party booking aggregators and OTAs. Our specialized Hospitality SEO services help your property rank directly in Google Search, Google Maps, and travel/destination queries — showcasing rich ratings, room availability, and dining highlights so guests book directly with you.</p>
+HTML,
+                'sections' => [
+                    [
+                        'heading' => 'Our SEO Services for Hospitality Businesses',
+                        'content' => '<ul><li><strong>Keyword Research &amp; Optimization:</strong> High-intent hospitality keywords (“luxury hotel in [city]”, “best family resort near [destination]”, “fine dining restaurant [locality]”, “banquet hall in [city]”).</li><li><strong>On-Page &amp; Schema SEO:</strong> Compelling meta titles, room/menu/venue page optimization, and Hotel / Restaurant JSON-LD structured data for rich star ratings and pricing snippets.</li><li><strong>Technical &amp; Mobile SEO:</strong> Fast mobile page speed, seamless booking-engine UX, Core Web Vitals optimization, and clean crawl/index architecture.</li><li><strong>Local SEO &amp; Google Business Profile:</strong> Complete GMB optimization with high-resolution property photos, amenities, menus, Q&amp;A, local citations, and review management.</li><li><strong>Destination Content Marketing:</strong> Travel guides, local attraction itineraries, seasonal staycation/event blogs, and guest story showcases.</li><li><strong>Authority Link Building:</strong> High-authority backlinks from travel publications, hospitality directories, food/lifestyle blogs, and local tourism boards.</li></ul>',
+                    ],
+                ],
+                'local_benefits' => [
+                    ['title' => 'Increased Online Visibility', 'text' => 'Rank at the top of Google Search and Maps when travelers and diners search for stays, dining, or event venues in your destination.', 'icon' => 'globe'],
+                    ['title' => 'Higher Direct Booking Rates', 'text' => 'Convert website visitors directly into room reservations, table bookings, and event enquiries without hefty OTA commissions.', 'icon' => 'chart'],
+                    ['title' => 'Enhanced Local & Map Pack Presence', 'text' => 'Capture nearby travelers and “near me” dining/hotel searches with optimized Google Business Profiles and local citations.', 'icon' => 'map-pin'],
+                    ['title' => 'Improved Brand Reputation', 'text' => 'Build guest trust with positive reviews, destination content hubs, and authoritative travel backlinks.', 'icon' => 'award'],
+                ],
+                'process' => [
+                    ['title' => 'Discovery & Goal Setting', 'text' => 'Understanding your property type, occupancy seasons, direct-booking targets, and competitive landscape.'],
+                    ['title' => 'Hospitality SEO Audit & Planning', 'text' => 'Comprehensive audit of your website, booking funnel, GMB listing, and destination keyword opportunities.'],
+                    ['title' => 'Execution & Content Phase', 'text' => 'Implementing on-page SEO, Hotel/Restaurant schema, technical fixes, destination guides, and travel link building.'],
+                    ['title' => 'Monitoring & ROI Analytics', 'text' => 'Ongoing tracking of keyword rankings, organic traffic, GMB calls/directions, and direct booking conversions.'],
+                ],
+                'why_choose_us' => [
+                    ['title' => 'Hospitality Industry Expertise', 'text' => 'Proven experience helping luxury hotels, resorts, spas, and restaurant chains grow direct search bookings.', 'icon' => 'hotel'],
+                    ['title' => 'Customized Seasonal Strategies', 'text' => 'Tailored SEO roadmaps aligned with peak travel seasons, wedding/banquet cycles, and local events.', 'icon' => 'sliders'],
+                    ['title' => 'Data-Driven & White-Hat Execution', 'text' => '100% Google-compliant SEO backed by transparent monthly reporting on direct bookings and enquiries.', 'icon' => 'shield'],
+                ],
+                'cta_heading' => 'Ready to Grow Direct Bookings for Your Hospitality Brand?',
+                'cta_description' => 'Get a free Hospitality SEO audit and discover how we can help your hotel, resort, or restaurant outrank competitors and OTAs.',
+                'faqs' => [
+                    ['How long does SEO take to show results for hospitality companies?', '<p>SEO is a long-term strategy. Most hospitality businesses begin to see meaningful improvements in local and destination rankings within 3–6 months, with competitive luxury hotel markets compounding strongly over 6–12 months.</p>'],
+                    ['Do you provide customized content for hotel rooms, venues, and dining pages?', '<p>Yes! We create custom, keyword-optimized copy for room categories, banquet/wedding venues, restaurants, and destination travel guides designed to engage guests and drive direct bookings.</p>'],
+                    ['Do you optimize Google Business Profile for hotels and restaurants?', '<p>Absolutely. Google Business Profile optimization is a core part of our hospitality SEO service — covering categories, amenities, photos, menu/booking links, posts, and review management.</p>'],
+                    ['Do you use white-hat SEO techniques only?', '<p>Yes, always. We strictly follow Google’s guidelines using white-hat, sustainable SEO techniques that build lasting authority for your hospitality brand without any risk of penalties.</p>'],
+                ],
+            ],
+            [
+                'type' => LandingPageType::ServiceIndustry,
+                'location' => null,
+                'industry' => 'logistics',
+                'slug' => 'seo-for-transport-and-logistics',
+                'title' => 'SEO for Transport & Logistics Companies',
+                'h1' => 'SEO for [[Transport and Logistics]] Companies',
+                'hero_subheading' => 'B2B SEO for Transport, Freight & Supply Chain',
+                'intro' => '<p>SEO for transport and logistics companies involves optimizing your website and digital presence so supply-chain managers, manufacturers, and commercial shippers find your company first on Google. Our specialized B2B logistics SEO strategies help you attract qualified freight and contract enquiries, build industry authority, and drive sustainable growth.</p>',
+                'content' => <<<'HTML'
+<h2>Capture High-Value B2B Freight, Fleet &amp; Warehousing RFQs From Search</h2>
+<p>Procurement and logistics buyers research capabilities, fleet coverage, compliance, and lane expertise online before shortlisting partners. We build authoritative service, industry, and corridor landing pages supported by technical SEO and B2B link building so your transport and logistics business captures high-value commercial contracts.</p>
+HTML,
+                'sections' => [
+                    [
+                        'heading' => 'Our SEO Services for Transport and Logistics Companies',
+                        'content' => '<ul><li><strong>B2B Keyword Research &amp; Optimization:</strong> Targeting commercial logistics keywords (“3PL logistics company in India”, “cold chain transport services”, “FTL/LTL freight forwarding”, “warehousing and distribution [city]”).</li><li><strong>On-Page SEO &amp; Capability Pages:</strong> Optimizing service pages, freight corridor/lane pages, fleet specifications, and structured schema markup.</li><li><strong>Technical SEO &amp; Core Web Vitals:</strong> Fast loading speeds, mobile responsiveness, clean site architecture, and error-free indexing across large service directories.</li><li><strong>Multi-Hub Local SEO:</strong> Optimizing Google Business Profiles and regional citations for every transport hub, warehouse, and branch office you operate.</li><li><strong>B2B Content Marketing:</strong> Supply-chain guides, industry case studies, compliance whitepapers, and freight blog articles that demonstrate domain authority.</li><li><strong>Authority Link Building &amp; Analytics:</strong> Earning high-quality backlinks from trade publications, logistics associations, and B2B directories with transparent monthly RFQ tracking.</li></ul>',
+                    ],
+                ],
+                'local_benefits' => [
+                    ['title' => 'Increased B2B Online Visibility', 'text' => 'Rank on page one when manufacturers, exporters, and retailers search for freight, 3PL, and transport partners.', 'icon' => 'globe'],
+                    ['title' => 'Higher Quality Commercial Leads', 'text' => 'Attract high-intent procurement and supply-chain decision-makers looking for long-term logistics contracts and RFQs.', 'icon' => 'truck'],
+                    ['title' => 'Enhanced Industry Credibility', 'text' => 'Build trust with detailed capability pages, safety/compliance credentials, case studies, and authoritative trade backlinks.', 'icon' => 'shield'],
+                    ['title' => 'Improved Quote & RFQ Conversion', 'text' => 'Streamlined website navigation and clear freight-quote forms turn visitors into qualified sales conversations.', 'icon' => 'chart'],
+                ],
+                'process' => [
+                    ['title' => 'Strategic Consultation', 'text' => 'We analyze your transport services, freight corridors, target industries, and commercial growth objectives.'],
+                    ['title' => 'Detailed B2B SEO Planning', 'text' => 'Comprehensive keyword research, competitor gap analysis, and a customized transport & logistics SEO roadmap.'],
+                    ['title' => 'On-Page, Technical & Hub Execution', 'text' => 'Executing service/corridor pages, technical fixes, multi-location GMB optimization, and B2B content creation.'],
+                    ['title' => 'Refinement & Authority Building', 'text' => 'Acquiring logistics and trade backlinks while continuously optimizing conversion funnels for RFQ generation.'],
+                    ['title' => 'Ongoing Rank & Lead Reporting', 'text' => 'Monthly analytics reporting on commercial keyword rankings, organic traffic, and inbound quote requests.'],
+                ],
+                'why_choose_us' => [
+                    ['title' => 'B2B Transport & Logistics Expertise', 'text' => 'We understand the long decision cycles, lane-specific search behavior, and B2B buyer intent of the logistics sector.', 'icon' => 'truck'],
+                    ['title' => 'Customized Multi-Location Strategies', 'text' => 'Tailored SEO strategies built around your specific fleet capabilities, warehousing hubs, and target corridors.', 'icon' => 'sliders'],
+                    ['title' => 'Data-Driven & Measurable ROI', 'text' => 'Strategies informed by real search data and tracked against qualified RFQs and commercial enquiries.', 'icon' => 'chart'],
+                ],
+                'cta_heading' => 'Ready to Grow Your Transport & Logistics Business?',
+                'cta_description' => 'Let Tech Alphonic help your transport and logistics company attract more commercial shippers, rank higher on Google, and win more RFQs.',
+                'faqs' => [
+                    ['How long does SEO take to show results for transport and logistics companies?', '<p>SEO is a long-term strategy. Most transport and logistics businesses begin to see meaningful improvements in rankings and B2B enquiries within 3–6 months, with national and corridor authority compounding over 6–12 months.</p>'],
+                    ['Do you provide customized content for transport and logistics service pages?', '<p>Yes! We create custom, keyword-optimized content for every service and corridor page — written specifically for the transport, freight, warehousing, and 3PL industry to engage commercial buyers and drive enquiries.</p>'],
+                    ['Do you optimize Google Business Profiles for multiple transport hubs and branches?', '<p>Absolutely. Multi-location Google Business Profile optimization is a core part of our local SEO service — ensuring every branch, warehouse, and hub is complete, keyword-rich, and visible in regional searches.</p>'],
+                    ['Do you use white-hat SEO techniques only?', '<p>Yes, always. We strictly follow Google’s guidelines using white-hat, sustainable SEO techniques that build lasting authority for your transport business without any risk of penalties.</p>'],
+                ],
+            ],
         ];
 
-        foreach ($legacy as [$type, $locSlug, $indSlug, $slug, $h1, $intro, $section]) {
-            $location = $locSlug ? Location::where('slug', $locSlug)->firstOrFail() : null;
-            $industry = $indSlug ? Industry::where('slug', $indSlug)->firstOrFail() : null;
+        foreach ($legacy as $item) {
+            $location = $item['location'] ? Location::where('slug', $item['location'])->firstOrFail() : null;
+            $industry = $item['industry'] ? Industry::where('slug', $item['industry'])->firstOrFail() : null;
 
-            $page = LandingPage::where('slug', $slug)->first()
-                ?? $gen->create($type, $seo, $location, $industry, 'manual')
+            $page = LandingPage::where('slug', $item['slug'])->first()
+                ?? $gen->create($item['type'], $seo, $location, $industry, 'manual')
                 ?? LandingPage::where('service_id', $seo->id)->where('location_id', $location?->id)->where('industry_id', $industry?->id)->first();
 
             $page->fill([
-                'slug' => $slug,
-                'title' => $h1,
-                'h1' => $h1,
-                'introduction' => $intro,
-                'sections' => [$section],
+                'slug' => $item['slug'],
+                'title' => $item['title'],
+                'h1' => $item['h1'],
+                'hero_subheading' => $item['hero_subheading'],
+                'introduction' => $item['intro'],
+                'content' => $item['content'],
+                'sections' => $item['sections'],
+                'benefits' => $item['local_benefits'],
+                'process' => $item['process'],
+                'why_choose_us' => $item['why_choose_us'],
+                'cta' => [
+                    'heading' => $item['cta_heading'],
+                    'text' => $item['cta_description'],
+                ],
                 'hero_layout' => $industry ? 'centered' : 'split',
+                'faq_enabled' => true,
                 'status' => ContentStatus::Published,
-                'published_at' => now(),
+                'published_at' => $page->published_at ?? now(),
             ])->save();
+
             $page->syncSeo([
-                'meta_title' => $h1.' | Tech Alphonic',
-                'meta_description' => strip_tags(Str::limit(strip_tags($intro), 155, '…')),
-                'focus_keyword' => strtolower($h1),
+                'meta_title' => $item['title'].' | Tech Alphonic',
+                'meta_description' => strip_tags(Str::limit(strip_tags($item['intro']), 155, '…')),
+                'focus_keyword' => strtolower($item['title']),
                 'robots_index' => true,
                 'robots_follow' => true,
                 'include_in_sitemap' => true,
             ]);
-            if ($location && $locationFaq) {
-                $page->syncFaqs(array_merge($seo->faqs()->pluck('faqs.id')->all(), [$locationFaq]));
+
+            if (! empty($item['faqs'])) {
+                $cat = FaqCategory::updateOrCreate(
+                    ['slug' => 'landing-'.$item['slug']],
+                    ['name' => $item['title'], 'sort_order' => 400]
+                );
+                $faqIds = [];
+                foreach ($item['faqs'] as $fi => [$q, $a]) {
+                    $faq = Faq::updateOrCreate(
+                        ['question' => $q],
+                        [
+                            'faq_category_id' => $cat->id,
+                            'answer' => $a,
+                            'is_active' => true,
+                            'sort_order' => 400 + $fi,
+                        ]
+                    );
+                    $faqIds[] = $faq->id;
+                }
+                $page->syncFaqs($faqIds);
+            } else {
+                $page->syncFaqs($seo->faqs()->pluck('faqs.id')->all());
             }
+            $page->blocks()->delete();
         }
 
-        // Renaming freshly generated slugs to the legacy URLs isn't a real URL change — drop those auto-redirects.
+        // Also ensure seo-company-in-los-angeles (ID 18) has all 9 genuine FAQs from the old site
+        if ($laPage = LandingPage::where('slug', 'seo-company-in-los-angeles')->first()) {
+            $laCat = FaqCategory::updateOrCreate(
+                ['slug' => 'landing-seo-company-in-los-angeles'],
+                ['name' => 'SEO Company in Los Angeles', 'sort_order' => 450]
+            );
+            $laFaqs = [
+                ['What does an SEO company in Los Angeles do?', '<p>An SEO company in Los Angeles helps local and global businesses improve their online visibility through keyword optimization, link building, content marketing, and technical SEO to rank higher on Google and attract quality leads.</p>'],
+                ['Why should I hire an SEO company in Los Angeles?', '<p>Hiring a Los Angeles SEO agency gives you access to experts who understand both local competition and global digital trends. They create data-driven strategies that boost your rankings, traffic, and conversions efficiently.</p>'],
+                ['How long does it take to see SEO results in Los Angeles?', '<p>Typically, noticeable SEO results take 3 to 6 months, depending on your website’s current performance, competition level, and strategy. Local SEO results may appear faster with consistent optimization.</p>'],
+                ['What makes the best SEO company in Los Angeles different?', '<p>The best SEO companies in Los Angeles provide customized strategies, transparent reporting, advanced AI tools, and proven results rather than one-size-fits-all SEO plans.</p>'],
+                ['Do Los Angeles SEO companies offer local SEO services?', '<p>Yes. We specialize in local SEO to help your business rank in “near me” searches, appear on Google Maps, and drive more customers from your target Los Angeles neighborhoods.</p>'],
+                ['How much does SEO cost in Los Angeles?', '<p>SEO pricing in Los Angeles depends on your goals, industry, and competition level. Tech Alphonic provides tailored, transparent quotes based on your specific business needs.</p>'],
+                ['Can SEO help my small business in Los Angeles?', '<p>Absolutely. SEO helps small businesses compete with bigger brands by improving local visibility, attracting organic traffic, and building trust with potential customers in Los Angeles.</p>'],
+                ['What industries do SEO companies in Los Angeles serve?', '<p>We work with diverse sectors in Los Angeles — including eCommerce, healthcare, real estate, hospitality, entertainment, legal, and technology — providing tailored SEO campaigns for each.</p>'],
+                ['How do I choose the right SEO company in Los Angeles?', '<p>Check their portfolio, client reviews, case studies, and expertise in local and technical SEO. Make sure they offer transparent communication, measurable results, and a data-driven approach.</p>'],
+            ];
+            $fixedLaIds = [28, 29, 30, 31, 32];
+            $laIds = [];
+            foreach ($laFaqs as $i => [$q, $a]) {
+                $fid = $fixedLaIds[$i] ?? null;
+                $faq = ($fid ? Faq::find($fid) : null) ?? Faq::where('question', $q)->first();
+                if ($faq) {
+                    $faq->update(['faq_category_id' => $laCat->id, 'question' => $q, 'answer' => $a, 'is_active' => true, 'sort_order' => 450 + $i]);
+                    $laIds[] = $faq->id;
+                } else {
+                    $laIds[] = Faq::create(['faq_category_id' => $laCat->id, 'question' => $q, 'answer' => $a, 'is_active' => true, 'sort_order' => 450 + $i])->id;
+                }
+            }
+            $laPage->syncFaqs($laIds);
+        }
+
+        // Drop auto-generated slug_change redirects from seeder updates
         Redirect::where('source', 'slug_change')->delete();
 
-        // Demo of the review workflow: generated drafts (noindex) awaiting unique content.
+        // Demo of the review workflow: keep generated drafts intact if they don't exist
         foreach (['delhi', 'ghaziabad', 'gurgaon', 'greater-noida'] as $slug) {
-            $gen->create(LandingPageType::ServiceLocation, $seo, Location::where('slug', $slug)->first(), null, 'bulk');
+            if (! LandingPage::where('slug', 'seo-company-in-'.$slug)->exists()) {
+                $gen->create(LandingPageType::ServiceLocation, $seo, Location::where('slug', $slug)->first(), null, 'bulk');
+            }
         }
         $realEstate = Industry::where('slug', 'real-estate')->first();
-        $gen->create(LandingPageType::ServiceLocationIndustry, $seo, Location::where('slug', 'noida')->first(), $realEstate, 'generator');
+        if ($realEstate && ! LandingPage::where('slug', 'seo-for-real-estate-in-noida')->exists()) {
+            $gen->create(LandingPageType::ServiceLocationIndustry, $seo, Location::where('slug', 'noida')->first(), $realEstate, 'generator');
+        }
     }
 }

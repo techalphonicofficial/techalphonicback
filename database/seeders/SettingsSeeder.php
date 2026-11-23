@@ -54,10 +54,10 @@ class SettingsSeeder extends Seeder
             'lead_autoreply_enabled' => '1',
             'lead_success_message' => 'Thank you! Our team will get back to you within one business day.',
             // footer
-            'footer_about' => 'Tech Alphonic helps ambitious businesses grow online with search engine optimization, performance marketing, high-converting websites and custom software — all under one roof.',
+            'footer_about' => 'At Tech Alphonic, we help businesses build a solid digital footprint and achieve measurable growth with our AI-powered digital marketing, SEO, web, and mobile app development solutions.',
             'footer_copyright' => '© {year} {site_name}. All rights reserved.',
-            'footer_cta_heading' => 'Ready to grow your business online?',
-            'footer_cta_text' => 'Tell us about your goals — we\'ll reply with a clear, honest plan within one business day.',
+            'footer_cta_heading' => 'Ready to Grow Your Business With the Best IT Partner?',
+            'footer_cta_text' => 'Give us a call or drop by anytime — we endeavour to answer all enquiries within 24 hours on business days.',
         ];
 
         foreach ($values as $key => $value) {

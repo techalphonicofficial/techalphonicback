@@ -10,86 +10,169 @@ class HomeSeeder extends Seeder
 {
     public function run(): void
     {
+        $existingHero = HeroSlide::where('sort_order', 0)->first();
+
         HeroSlide::updateOrCreate(['sort_order' => 0], [
-            'badge' => 'SEO · Marketing · Development — under one roof',
-            'heading' => 'Grow Your Business With [[SEO, Marketing & Technology]]',
+            'heading' => 'AI-Powered, Digital Marketing Company. [[Trends Defining the Future]]',
             'subheading' => 'Your Trusted IT Partner',
-            'description' => 'We help ambitious businesses rank higher, generate more qualified leads and build fast, scalable websites and apps — all with one accountable team.',
+            'description' => 'In the modern digital age, marketing takes more than standard campaigns; it requires smart insights, automation, and data-driven calls. Tech Alphonic is an AI-driven digital marketing company focused on helping brands expand faster through advanced artificial intelligence and proven marketing methods. We fuse human creativity with AI tech to deliver sharper audience targeting, stronger engagement, and measurable business growth.',
             'cta_text' => 'Get a Free Consultation',
             'cta_url' => '#enquiry-popup',
             'secondary_cta_text' => 'Watch how we work',
             'secondary_cta_url' => null,
-            'trust_text' => 'Trusted by 200+ clients across industries',
-            'show_form' => true, // compact enquiry card on the right of the video banner
+            'badge' => 'IT Solution Provider · 7+ Years of Trust',
+            'trust_text' => '1500+ Projects Completed · 60+ Team Members · 100% Client Satisfaction',
+            'image_id' => $existingHero?->image_id,
+            'background_id' => $existingHero?->background_id ?? 3,
+            'background_video_id' => $existingHero?->background_video_id ?? 2,
+            'video_url' => $existingHero?->video_url,
+            'show_form' => true,
             'is_active' => true,
         ]);
 
-        // key => [eyebrow, title, subtitle, content, visible]
+        // Preserve exact section keys, sort_order, is_visible, media bindings, and JSON shapes expected by HomeSections.tsx
         $sections = [
-            'hero' => [null, null, null, [
+            // [key, order, visible, eyebrow, title, subtitle, content]
+            ['hero', 0, true, null, null, null, [
                 'stats' => [
-                    // Figures as published on the old website (homepage counters / Our Work page).
                     ['value' => '7', 'suffix' => '+', 'label' => 'Years of experience'],
                     ['value' => '1500', 'suffix' => '+', 'label' => 'Projects completed'],
                     ['value' => '60', 'suffix' => '+', 'label' => 'Team members'],
                     ['value' => '100', 'suffix' => '%', 'label' => 'Client satisfaction'],
                 ],
-                'ticker' => ['Search Engine Optimization', 'Performance Marketing', 'Website Development', 'Laravel & Custom Software', 'Mobile Apps', 'Social Media', 'Branding & UI/UX', 'Ecommerce Growth'],
-            ], true],
-            'clients' => [null, 'Trusted by growing businesses', null, null, true], // logos attached by HomeMediaSeeder
-            'services' => ['What we do', 'Everything you need to [[grow online]]', 'Strategy, marketing and engineering under one roof — so nothing falls between the cracks.', null, true],
-            // Real “SEO Starter” plan from the Packages page.
-            'promo' => ['90 days · visible results', 'SEO plans starting at [[₹9,999/month]]', 'Achieve visible growth and real performance improvements with our results-driven SEO strategy in just 90 days. No hidden charges, and a dedicated account manager on every plan.', [
-                'points' => ['10 target keywords', 'On-page SEO optimisation', 'Google Business Profile setup', '5 blog articles every month', 'Technical SEO audit', 'Monthly performance report'],
+                'ticker' => [
+                    'Search Engine Optimization',
+                    'AI SEO (AEO & GEO)',
+                    'Performance Marketing (PPC)',
+                    'Social Media Marketing',
+                    'Website Development',
+                    'Laravel & Custom Software',
+                    'Mobile App Development',
+                    'Branding & UI/UX',
+                    'Ecommerce Growth',
+                ],
+            ]],
+            ['clients', 1, true, null, 'Our Valued Clients', null, [
+                'items' => [
+                    ['name' => 'AyurGrid', 'logo_id' => 57],
+                    ['name' => 'Lawgical', 'logo_id' => 58],
+                    ['name' => 'Kitchen Fix Solution', 'logo_id' => 59],
+                    ['name' => 'Desi Guru', 'logo_id' => 60],
+                    ['name' => 'Chardham Yatra', 'logo_id' => 61],
+                    ['name' => 'Services Plus', 'logo_id' => 62],
+                    ['name' => 'Com-Paint', 'logo_id' => 63],
+                    ['name' => 'Enlive', 'logo_id' => 64],
+                ],
+            ]],
+            ['services', 2, true, 'Our Expertise', 'Digital Marketing & Technology Services [[Built for Growth]]', 'From search visibility to custom software, Tech Alphonic brings every growth channel under one roof. We combine data, AI and hands-on experience to build strategies that fit your business, not a generic template.', [
+                'image_id' => 7,
+            ]],
+            ['promo', 3, true, '90 days · visible results', 'SEO plans starting at [[₹9,999/month]]', 'Achieve visible growth and real performance improvements with our results-driven SEO strategy in just 90 days. No hidden charges, and a dedicated account manager on every plan.', [
+                'points' => [
+                    '10 target keywords',
+                    'On-page SEO optimisation',
+                    'Google Business Profile setup',
+                    '5 blog articles every month',
+                    'Technical SEO audit',
+                    'Monthly performance report',
+                ],
                 'button_text' => 'Get started with SEO',
                 'note' => 'Month-to-month · Cancel with 30 days’ notice',
-                'price_label' => 'SEO Starter', 'price_old' => null, 'price_new' => '₹9,999/mo',
-            ], true],
-            'about' => ['Why Tech Alphonic', 'One partner for [[marketing & technology]]', 'Most businesses juggle separate SEO, ads and development vendors. We bring them together.', [
-                'text' => '<p>Our specialists in SEO, paid media, content, design and engineering work as one team with a single goal: measurable growth for your business. Clear KPIs, honest timelines and transparent reporting come standard.</p>',
-                'points' => ['Dedicated account manager', 'In-house design & development', 'White-hat, guideline-compliant SEO', 'Monthly reports tied to leads & revenue'],
-                'cta_text' => 'More about us', 'cta_url' => '/about-us/',
-                'badge_value' => '7', 'badge_suffix' => '+', 'badge_label' => 'Years of digital growth experience',
-            ], true],
-            'showreel' => ['Inside Tech Alphonic', 'See how we turn ideas into [[measurable growth]]', 'A quick look at how our strategists, designers and engineers work together on every project.', [
-                'stats' => [
-                    ['value' => '94', 'suffix' => '%', 'label' => 'Client keywords improved'],
-                    ['value' => '60–90', 'suffix' => '', 'label' => 'Days to first ranking gains'],
+                'price_label' => 'SEO Starter',
+                'price_old' => null,
+                'price_new' => '₹9,999/mo',
+                'image_id' => 56,
+            ]],
+            ['about', 4, true, 'About Tech Alphonic', 'Accelerate Your Digital Growth with a [[Trusted Marketing Partner]]', 'We stay focused on your digital outcomes, not just traffic for traffic’s sake.', [
+                'text' => '<p>At Tech Alphonic, we help businesses build a solid digital footprint and achieve measurable growth with our AI-powered digital marketing solutions. Our team brings together artificial intelligence, advanced analytics, and proven marketing strategies to create campaigns that bring in qualified traffic, good leads, and higher conversions.</p><p>We mix new ideas, data-led strategies, and industry know-how to support brands in getting noticed in a very competitive digital space. Whether you are a startup trying to get seen or an established business aiming to scale, our customized digital marketing solutions are built to deliver real business outcomes.</p>',
+                'points' => [
+                    'Expert Team — AI SEO, SMO, PPC & Full-Stack Developers',
+                    'Responsive Support — Direct communication & agile execution',
+                    'Proven Track Record — Data-led strategies & white-hat SEO',
+                    'Transparent Reporting — Monthly reports tied to leads & ROI',
                 ],
-            ], true],
-            'process' => ['How we work', 'A clear process, [[predictable results]]', null, ['steps' => [
-                ['title' => 'Discover', 'text' => 'We learn your business, audience and goals, and audit what you have today.', 'icon' => 'search'],
-                ['title' => 'Plan', 'text' => 'A prioritised roadmap with KPIs, timelines and transparent pricing.', 'icon' => 'target'],
-                ['title' => 'Build & execute', 'text' => 'Specialists deliver in focused sprints with regular check-ins.', 'icon' => 'rocket'],
-                ['title' => 'Measure & grow', 'text' => 'We report on results and keep optimising for growth.', 'icon' => 'trending-up'],
-            ]], true],
-            'industries' => ['Industries', 'Expertise across [[your industry]]', 'Strategies shaped around how your customers search, compare and buy.', null, true],
-            'technologies' => ['Technology', 'Modern, proven [[technology stack]]', 'We choose tools for performance, security and long-term maintainability.', ['items' => [
-                ['name' => 'Laravel', 'group' => 'Backend'], ['name' => 'PHP 8', 'group' => 'Backend'], ['name' => 'Node.js', 'group' => 'Backend'], ['name' => 'MySQL', 'group' => 'Backend'],
-                ['name' => 'React', 'group' => 'Frontend'], ['name' => 'Next.js', 'group' => 'Frontend'], ['name' => 'Tailwind CSS', 'group' => 'Frontend'], ['name' => 'Alpine.js', 'group' => 'Frontend'],
-                ['name' => 'Flutter', 'group' => 'Mobile'], ['name' => 'React Native', 'group' => 'Mobile'], ['name' => 'Kotlin', 'group' => 'Mobile'], ['name' => 'Swift', 'group' => 'Mobile'],
-                ['name' => 'WordPress', 'group' => 'CMS & Commerce'], ['name' => 'Shopify', 'group' => 'CMS & Commerce'], ['name' => 'WooCommerce', 'group' => 'CMS & Commerce'],
-                ['name' => 'Google Ads', 'group' => 'Marketing'], ['name' => 'GA4', 'group' => 'Marketing'], ['name' => 'Search Console', 'group' => 'Marketing'], ['name' => 'Meta Ads', 'group' => 'Marketing'], ['name' => 'Ahrefs', 'group' => 'Marketing'],
-            ]], false],
-            'portfolio' => ['Our work', 'Results that [[speak for themselves]]', 'A few recent projects and the growth they delivered.', null, true],
-            'testimonials' => ['Testimonials', 'What our [[clients say]]', 'Long-term partnerships built on transparent work and real results.', null, true],
-            'blogs' => ['Insights', 'Latest from our [[blog]]', 'Practical guides on SEO, marketing and development.', null, true],
-            'faq' => ['FAQ', 'Frequently asked questions', null, null, true],
-            'cta' => ['Let’s talk', 'Ready to grow your business online?', 'Get a free consultation and a clear, honest growth plan — no obligation.', ['button_text' => 'Get my free consultation', 'variant' => 'banner'], true],
-            'stats' => [null, 'Our numbers', null, null, false],
-            'enquiry' => ['Let’s talk', 'Ready to [[grow your business]]?', null, null, false],
+                'cta_text' => 'More About Us',
+                'cta_url' => '/about-us/',
+                'badge_value' => '7',
+                'badge_suffix' => '+',
+                'badge_label' => 'Years of Trust',
+                'image_id' => 4,
+            ]],
+            ['showreel', 5, true, 'Why Choose an AI-Driven Agency', 'How AI Upshifts Your [[Digital Marketing Outcomes]]', 'The digital marketing space is changing fast — old-school guesswork is out. By blending AI tools with strategic marketing thinking, we help brands analyze customer behavior, map buyer journeys, and automate campaign performance.', [
+                'stats' => [
+                    ['value' => '1500', 'suffix' => '+', 'label' => 'Projects completed'],
+                    ['value' => '100', 'suffix' => '%', 'label' => 'Client satisfaction'],
+                ],
+                'image_id' => 5,
+                'video_id' => 2,
+            ]],
+            ['process', 6, true, 'Our Business Workflow', 'How an engagement moves from [[insight to growth]]', 'Our structured six-step business workflow ensures every campaign is data-driven, efficient, and focused on measurable outcomes.', [
+                'steps' => [
+                    ['title' => 'Business Analysis', 'text' => 'We evaluate your business model, objectives, target audience, and current digital footprint to establish a clear baseline for growth.', 'icon' => 'search'],
+                    ['title' => 'Strategy Development', 'text' => 'Our specialists design a tailored digital marketing and technology roadmap with prioritized channels, deliverables, and KPIs.', 'icon' => 'target'],
+                    ['title' => 'AI-Based Market Research', 'text' => 'Using AI insights and search intelligence, we analyze customer intent, high-converting keywords, competitor gaps, and market trends.', 'icon' => 'cpu'],
+                    ['title' => 'Campaign Implementation', 'text' => 'We execute SEO, SMO, PPC, content, and web development initiatives with clean technical execution and conversion-focused design.', 'icon' => 'rocket'],
+                    ['title' => 'Monitoring and Optimization', 'text' => 'We continuously track rankings, traffic, engagement, and conversion signals in real time to refine campaigns and maximize ROI.', 'icon' => 'trending-up'],
+                    ['title' => 'Reporting and Growth Planning', 'text' => 'You receive transparent performance reports on traffic, leads, and ROI alongside actionable plans for the next phase of growth.', 'icon' => 'chart'],
+                ],
+            ]],
+            ['industries', 7, true, 'Industries', 'Dominate Search in [[Your Industry]]', 'Every industry has unique buyer journeys, competitive landscapes, and search behaviors. We build custom strategies tailored to your vertical.', null],
+            ['technologies', 8, false, 'Technology', 'Modern, proven [[technology stack]]', 'We choose tools for performance, security and long-term maintainability.', [
+                'items' => [
+                    ['name' => 'Laravel', 'group' => 'Backend'],
+                    ['name' => 'PHP 8', 'group' => 'Backend'],
+                    ['name' => 'Node.js', 'group' => 'Backend'],
+                    ['name' => 'MySQL', 'group' => 'Backend'],
+                    ['name' => 'React', 'group' => 'Frontend'],
+                    ['name' => 'Next.js', 'group' => 'Frontend'],
+                    ['name' => 'Tailwind CSS', 'group' => 'Frontend'],
+                    ['name' => 'Alpine.js', 'group' => 'Frontend'],
+                    ['name' => 'Flutter', 'group' => 'Mobile'],
+                    ['name' => 'React Native', 'group' => 'Mobile'],
+                    ['name' => 'Kotlin', 'group' => 'Mobile'],
+                    ['name' => 'Swift', 'group' => 'Mobile'],
+                    ['name' => 'WordPress', 'group' => 'CMS & Commerce'],
+                    ['name' => 'Shopify', 'group' => 'CMS & Commerce'],
+                    ['name' => 'WooCommerce', 'group' => 'CMS & Commerce'],
+                    ['name' => 'Google Ads', 'group' => 'Marketing'],
+                    ['name' => 'GA4', 'group' => 'Marketing'],
+                    ['name' => 'Search Console', 'group' => 'Marketing'],
+                    ['name' => 'Meta Ads', 'group' => 'Marketing'],
+                    ['name' => 'Ahrefs', 'group' => 'Marketing'],
+                ],
+            ]],
+            ['portfolio', 9, true, 'Our Work', 'Results that [[speak for themselves]]', 'Verified search rankings and digital growth delivered for our clients.', null],
+            ['testimonials', 10, true, 'Client Reviews', 'What Our [[Clients Say]] About Us', 'Don’t just take our word for it — hear from businesses we have helped grow across India.', null],
+            ['blogs', 11, true, 'Latest Insights', 'Latest Insights & [[Blogs]]', 'Explore our latest blogs, industry trends, web development tips, digital marketing strategies, and technology insights designed to help your business grow online and stay ahead in the digital world.', null],
+            ['faq', 12, true, 'FAQ', 'Frequently Asked [[Questions]]', 'Everything you need to know about our AI-driven digital marketing and technology services.', null],
+            ['cta', 13, true, 'Let’s Talk', 'Ready to Grow Your Business With the [[Best IT Partner]]?', 'Get a free consultation and a custom growth plan tailored to your goals — no obligation.', [
+                'button_text' => 'Get a Free Consultation',
+                'button_url' => '/contact/',
+                'variant' => 'banner',
+            ]],
+            ['stats', 14, false, null, 'Our numbers', null, [
+                'items' => [
+                    ['value' => '7', 'suffix' => '+', 'label' => 'Years of Trust'],
+                    ['value' => '1500', 'suffix' => '+', 'label' => 'Projects Completed'],
+                    ['value' => '60', 'suffix' => '+', 'label' => 'Team Members'],
+                    ['value' => '100', 'suffix' => '%', 'label' => 'Client Satisfaction'],
+                ],
+            ]],
+            ['enquiry', 15, false, 'Let’s talk', 'Ready to [[grow your business]]?', null, null],
         ];
 
-        $order = 0;
-        foreach ($sections as $key => [$eyebrow, $title, $subtitle, $content, $visible]) {
-            $existing = HomeSection::where('key', $key)->first();
+        $keepKeys = [];
+        foreach ($sections as [$key, $order, $visible, $eyebrow, $title, $subtitle, $content]) {
+            $keepKeys[] = $key;
             HomeSection::updateOrCreate(['key' => $key], [
-                'eyebrow' => $eyebrow, 'title' => $title, 'subtitle' => $subtitle,
-                // keep media ids already attached (HomeMediaSeeder) when re-seeding
-                'content' => $content === null ? $existing?->content : array_merge($existing?->content ?? [], $content),
-                'sort_order' => $order++,
+                'eyebrow' => $eyebrow,
+                'title' => $title,
+                'subtitle' => $subtitle,
+                'content' => $content,
                 'is_visible' => $visible,
+                'sort_order' => $order,
             ]);
         }
+        HomeSection::whereNotIn('key', $keepKeys)->delete();
     }
 }
