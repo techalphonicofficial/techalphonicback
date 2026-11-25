@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Requests\Admin\LocationRequest;
 use App\Models\Location;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 
 class LocationController extends ContentController
 {
@@ -24,9 +25,13 @@ class LocationController extends ContentController
 
     protected array $sortable = ['name', 'sort_order'];
 
+    protected array $listWith = ['parent:id,name'];
+
     protected array $columns = [
         ['Name', 'name', 'title'],
         ['Type', 'type', 'badge'],
+        ['Parent', 'parent.name', 'text'],
+        ['Areas', 'areas_count', 'text'],
         ['State', 'state', 'text'],
         ['Country', 'country', 'text'],
         ['SEO pages', 'landing_pages_count', 'text'],
@@ -35,7 +40,7 @@ class LocationController extends ContentController
 
     protected function query()
     {
-        return Location::query()->withCount('landingPages');
+        return Location::query()->withCount(['landingPages', 'areas']);
     }
 
     protected function requestClass(): string
@@ -48,8 +53,31 @@ class LocationController extends ContentController
         return ['status' => 'published', 'type' => 'city', 'country' => 'India'];
     }
 
+    protected function applyFilters($query, Request $request): void
+    {
+        if ($type = $request->query('type')) {
+            $query->where('type', $type);
+        }
+        if ($city = $request->integer('city')) {
+            $query->where('parent_id', $city);
+        }
+    }
+
+    protected function filterOptions(): array
+    {
+        return [
+            'type' => ['label' => 'Type', 'options' => Location::TYPES],
+            'city' => ['label' => 'Areas of city', 'options' => Location::where('type', 'city')->orderBy('name')->pluck('name', 'id')->all()],
+        ];
+    }
+
     protected function formData(Model $item): array
     {
-        return ['parents' => Location::whereKeyNot($item->id)->whereIn('type', ['state', 'country', 'region'])->orderBy('name')->pluck('name', 'id')];
+        $parents = Location::whereKeyNot($item->id)->orderBy('name');
+
+        return [
+            'parents' => (clone $parents)->whereIn('type', ['state', 'country', 'region'])->pluck('name', 'id'),
+            'cities' => (clone $parents)->where('type', 'city')->pluck('name', 'id'),
+        ];
     }
 }

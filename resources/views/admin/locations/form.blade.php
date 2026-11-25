@@ -1,7 +1,7 @@
 @extends('admin.content.form', ['tabs' => ['basic' => 'Location', 'local' => 'Local business & content']])
 
 @section('tab-basic')
-<div class="grid gap-4 md:grid-cols-2">
+<div class="grid gap-4 md:grid-cols-2" x-data="{ type: @js(old('type', $item->type ?? 'city')) }">
     <x-admin.field name="name" label="Location name" :value="$item->name" required />
     <div x-data="slugField(@js(old('slug', $item->slug)), 'name')">
         <label class="a-label" for="slug">Slug</label>
@@ -9,10 +9,16 @@
         <p class="a-help">Used in programmatic URLs, e.g. seo-company-in-<strong x-text="slug || 'noida'"></strong></p>
         @error('slug')<p class="a-error">{{ $message }}</p>@enderror
     </div>
-    <x-admin.field type="select" name="type" label="Type" :value="$item->type" :options="['city' => 'City', 'state' => 'State', 'country' => 'Country', 'region' => 'Region']" :empty="false" />
-    <x-admin.field type="select" name="parent_id" label="Parent (state / country)" :value="$item->parent_id" :options="$parents" />
-    <x-admin.field name="state" label="State" :value="$item->state" />
-    <x-admin.field name="country" label="Country" :value="$item->country ?? 'India'" required />
+    <x-admin.field type="select" name="type" label="Type" :value="$item->type" :options="\App\Models\Location::TYPES" :empty="false" x-model="type" help="Area = a locality inside a city (e.g. Sector 62 in Noida). It is listed on that city's pages." />
+    {{-- Same field, two lists: only the enabled select is submitted. --}}
+    <div x-show="type !== 'area'">
+        <x-admin.field type="select" name="parent_id" label="Parent (state / country)" :value="$item->parent_id" :options="$parents" ::disabled="type === 'area'" />
+    </div>
+    <div x-show="type === 'area'" x-cloak>
+        <x-admin.field type="select" name="parent_id" label="City" :value="$item->parent_id" :options="$cities" ::disabled="type !== 'area'" ::required="type === 'area'" help="State and country are taken from the city." />
+    </div>
+    <div x-show="type !== 'area'"><x-admin.field name="state" label="State" :value="$item->state" /></div>
+    <div x-show="type !== 'area'"><x-admin.field name="country" label="Country" :value="$item->country ?? 'India'" required /></div>
     <x-admin.field type="number" name="latitude" label="Latitude" :value="$item->latitude" step="0.0000001" />
     <x-admin.field type="number" name="longitude" label="Longitude" :value="$item->longitude" step="0.0000001" />
     <x-admin.field type="textarea" name="description" label="Description" :value="$item->description" rows="4" class="md:col-span-2" />

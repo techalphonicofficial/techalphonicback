@@ -83,7 +83,7 @@ class BlockPresenter
                     ? $this->links->relatedBlogs($context, (int) ($d['limit'] ?? 3))
                     : Blog::published()->with(['featuredImage', 'category'])->latest('published_at')->limit((int) ($d['limit'] ?? 3))->get())
                 ->map(fn ($b) => $this->present->blogCard($b))->values()->all()],
-            'related_locations' => ['pages' => LandingPage::published()->serviceLocation()
+            'related_locations' => ['pages' => LandingPage::published()->serviceLocation()->whereRelation('location', 'type', '!=', 'area')
                 ->when($serviceId, fn ($q) => $q->where('service_id', $serviceId))
                 ->when($context instanceof LandingPage, fn ($q) => $q->whereKeyNot($context->id))
                 ->with('location')->limit((int) ($d['limit'] ?? 12))->get()

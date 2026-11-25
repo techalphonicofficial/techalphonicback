@@ -25,7 +25,7 @@
                     <button type="button" class="text-xs font-semibold text-brand" @click="locs = locs.length ? [] : @js($locations->pluck('id')->map(fn ($i) => (string) $i))">Toggle all</button></div>
                 <div class="grid max-h-72 grid-cols-2 gap-1 overflow-y-auto rounded-xl border border-line p-3 sm:grid-cols-3 lg:grid-cols-4">
                     @foreach($locations as $l)
-                        <label class="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-mist"><input type="checkbox" name="location_ids[]" value="{{ $l->id }}" x-model="locs" class="a-check"> {{ $l->name }}</label>
+                        <label class="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-mist"><input type="checkbox" name="location_ids[]" value="{{ $l->id }}" x-model="locs" class="a-check"> {{ $l->display_name }}</label>
                     @endforeach
                 </div>
             </div>

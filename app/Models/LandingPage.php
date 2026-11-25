@@ -104,7 +104,7 @@ class LandingPage extends Model
         return [
             'service_name' => $this->service?->name ?? '',
             'service_name_lower' => mb_strtolower($this->service?->name ?? ''),
-            'location_name' => $this->location?->name ?? '',
+            'location_name' => $this->location?->display_name ?? '',
             'state_name' => $this->location?->state ?? '',
             'country_name' => $this->location?->country ?? '',
             'industry_name' => $this->industry?->name ?? '',

@@ -56,7 +56,7 @@
                     <td><a href="{{ route('admin.landing-pages.edit', $p->id) }}" class="font-semibold text-ink hover:text-brand">{{ $p->title }}</a><span class="block text-xs text-slate-400">/{{ $p->slug }}/</span></td>
                     <td><span class="a-badge bg-slate-100 text-slate-600">{{ $p->page_type->label() }}</span></td>
                     <td class="text-slate-600">{{ $p->service?->name }}</td>
-                    <td class="text-slate-600">{{ collect([$p->location?->name, $p->industry?->name])->filter()->implode(' · ') }}</td>
+                    <td class="text-slate-600">{{ collect([$p->location?->display_name, $p->industry?->name])->filter()->implode(' · ') }}</td>
                     <td>
                         <span class="flex gap-1 text-[0.65rem] font-bold">
                             <span class="a-badge {{ $p->seo?->meta_title ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600' }}">T</span>

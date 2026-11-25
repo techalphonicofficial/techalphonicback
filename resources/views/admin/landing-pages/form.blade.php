@@ -19,7 +19,7 @@
     <x-admin.field type="select" name="page_type" label="Page type" :value="$item->page_type?->value ?? $item->page_type" :options="\App\Enums\LandingPageType::options()" :empty="false" x-model="pageType" />
     <x-admin.field type="select" name="service_id" label="Service" :value="$item->service_id" :options="$services" required />
     <div x-show="pageType !== 'service_industry'" x-cloak>
-        <x-admin.field type="select" name="location_id" label="Location" :value="$item->location_id" :options="$locations->mapWithKeys(fn ($l) => [$l->id => $l->name.($l->state ? ', '.$l->state : '')])" help="Required for location page types." ::disabled="pageType === 'service_industry'" ::required="pageType !== 'service_industry'" />
+        <x-admin.field type="select" name="location_id" label="Location" :value="$item->location_id" :options="$locations->mapWithKeys(fn ($l) => [$l->id => $l->display_name.($l->state && ! $l->isArea() ? ', '.$l->state : '')])" help="Required for location page types." ::disabled="pageType === 'service_industry'" ::required="pageType !== 'service_industry'" />
     </div>
     <div x-show="pageType !== 'service_location'" x-cloak>
         <x-admin.field type="select" name="industry_id" label="Industry" :value="$item->industry_id" :options="$industries" help="Required for industry page types." ::disabled="pageType === 'service_location'" ::required="pageType !== 'service_location'" />

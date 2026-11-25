@@ -81,10 +81,10 @@ class InternalLinkService
         if ($page->location_id) {
             $groups[($page->service?->name ?? 'Services').' in other cities'] = (clone $base)
                 ->where('service_id', $page->service_id)->whereNull('industry_id')->whereNotNull('location_id')
-                ->where('location_id', '!=', $page->location_id)->with('location')->get()
+                ->where('location_id', '!=', $page->location_id)->whereRelation('location', 'type', '!=', 'area')->with('location')->get()
                 ->map(fn ($p) => ['name' => $p->title, 'url' => $p->url]);
 
-            $groups['More services in '.$page->location?->name] = (clone $base)
+            $groups['More services in '.$page->location?->display_name] = (clone $base)
                 ->where('location_id', $page->location_id)->where('service_id', '!=', $page->service_id)->get()
                 ->map(fn ($p) => ['name' => $p->title, 'url' => $p->url]);
         }
@@ -112,7 +112,7 @@ class InternalLinkService
                 ->orderBy('sort_order')->limit(self::CAP)->get())
             ->unique('id')->take(self::CAP)->map(fn ($s) => $this->item($s))->values();
 
-        $groups['Locations'] = $service->landingPages()->published()->serviceLocation()->limit(18)->get()
+        $groups['Locations'] = $service->landingPages()->published()->serviceLocation()->whereRelation('location', 'type', '!=', 'area')->limit(18)->get()
             ->map(fn ($p) => ['name' => $p->title, 'url' => $p->url]);
 
         $groups['Industries'] = $service->landingPages()->published()->serviceIndustry()->limit(self::CAP)->get()

@@ -49,6 +49,9 @@ class BreadcrumbService
                 $service = $model->service;
                 $add($service?->category);
                 $add($service);
+                if ($city = $model->location?->city()) {
+                    $trail[] = ['name' => $city->name, 'url' => $city->urlFor($service)];
+                }
                 break;
 
             case $model instanceof Blog:

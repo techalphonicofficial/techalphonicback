@@ -18,7 +18,7 @@
                 </div>
             </div>
             <x-admin.field type="select" name="service_id" label="Service" :options="$services" required />
-            <div x-show="type !== 'service_industry'"><x-admin.field type="select" name="location_id" label="Location" :options="$locations->mapWithKeys(fn ($l) => [$l->id => $l->name.($l->state ? ', '.$l->state : '')])" /></div>
+            <div x-show="type !== 'service_industry'"><x-admin.field type="select" name="location_id" label="Location" :options="$locations->mapWithKeys(fn ($l) => [$l->id => $l->display_name.($l->state && ! $l->isArea() ? ', '.$l->state : '')])" /></div>
             <div x-show="type !== 'service_location'"><x-admin.field type="select" name="industry_id" label="Industry" :options="$industries" /></div>
             <p class="rounded-lg bg-mist p-3 text-xs text-slate-600">Next you'll get a pre-filled draft: URL, H1, introduction, meta title & description from the service's programmatic template. Edit everything before publishing.</p>
             <div class="flex justify-end gap-2">

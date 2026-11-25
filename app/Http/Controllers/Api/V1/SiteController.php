@@ -255,6 +255,9 @@ class SiteController extends Controller
         if (! $model || (! $preview && ! $model->isPublished())) {
             return $this->notFound();
         }
+        if ($model instanceof LandingPage) {
+            $model->loadMissing('location.parent');
+        }
 
         $common = [
             'faqs' => $this->present->faqs($this->faqs->for($model)),
@@ -372,7 +375,7 @@ class SiteController extends Controller
                 'featured_image' => $this->present->media($page->featuredImage),
             ],
             'service' => $service ? ['name' => $service->name] : null,
-            'location' => $page->location ? ['name' => $page->location->name] : null,
+            'location' => $page->location ? $this->locationRef($page->location) : null,
             'industry' => $page->industry ? $this->present->industry($page->industry) : null,
             'site_name' => setting('site_name'),
             'h1' => $r($page->heading),
@@ -558,7 +561,7 @@ class SiteController extends Controller
 
     private function location(string $locationSlug, ?string $serviceSlug = null): JsonResponse
     {
-        $location = \App\Models\Location::active()->with('heroImage')->where('slug', $locationSlug)->first();
+        $location = \App\Models\Location::active()->with(['heroImage', 'parent'])->where('slug', $locationSlug)->first();
         if (! $location) {
             return $this->notFound();
         }
@@ -598,7 +601,7 @@ class SiteController extends Controller
         $siteName = setting('site_name', 'Tech Alphonic');
         $serviceName = $service ? $service->name : 'Digital Marketing & Web Development';
         $serviceLower = mb_strtolower($serviceName);
-        $locName = $location->name;
+        $locName = $location->display_name;
         $regionLabel = collect([$location->state, $location->country])->filter()->unique()->implode(', ') ?: 'India';
 
         $canonical = $serviceSlug
@@ -614,7 +617,10 @@ class SiteController extends Controller
         if ($service) {
             $crumbs[] = ['name' => $service->name, 'url' => $service->url];
         }
-        $crumbs[] = ['name' => $locName, 'url' => null];
+        if ($city = $location->city()) {
+            $crumbs[] = ['name' => $city->name, 'url' => $city->urlFor($service)];
+        }
+        $crumbs[] = ['name' => $location->name, 'url' => null];
 
         $seo = $this->seo->make($title, $metaDescription, $crumbs, [
             'canonical' => $canonical,
@@ -623,7 +629,7 @@ class SiteController extends Controller
 
         $faqs = $service ? $this->faqs->for($service) : Faq::active()->whereHas('category', fn ($q) => $q->where('slug', 'general'))->orderBy('sort_order')->limit(6)->get();
 
-        $otherLocations = \App\Models\Location::active()->whereKeyNot($location->id)->orderBy('sort_order')->limit(8)->get()->map(fn ($l) => [
+        $otherLocations = \App\Models\Location::active()->where('type', '!=', 'area')->whereKeyNot($location->id)->orderBy('sort_order')->limit(8)->get()->map(fn ($l) => [
             'name' => "{$serviceName} in {$l->name}",
             'url' => $serviceSlug ? slash_url('/location/'.$serviceSlug.'/'.$l->slug) : slash_url('/location/'.$l->slug),
         ])->values()->all();
@@ -656,7 +662,7 @@ class SiteController extends Controller
                 'featured_image' => $this->present->media($location->heroImage ?? $service?->heroImage ?? $service?->featuredImage),
             ],
             'service' => $service ? ['name' => $service->name] : ['name' => $serviceName],
-            'location' => ['name' => $locName],
+            'location' => $this->locationRef($location),
             'industry' => null,
             'site_name' => $siteName,
             'h1' => "{$serviceName} Company in [[{$locName}]]",
@@ -696,7 +702,17 @@ class SiteController extends Controller
         return $this->page('landing', $seo, $data);
     }
 
-    /** Builds the India + USA/Global location directory along with created pages for each location. */
+    /** Where a page sits in country → city → area. "city_slug" is the directory entry that lists its areas. */
+    private function locationRef(\App\Models\Location $location): array
+    {
+        return [
+            'name' => $location->display_name,
+            'slug' => $location->slug,
+            'city_slug' => $location->isArea() ? $location->city()?->slug : $location->slug,
+        ];
+    }
+
+    /** Builds the India + USA/Global location directory: created pages and areas of each location. */
     private function locationDirectory(?Service $currentService = null): array
     {
         $allPublishedLps = LandingPage::published()
@@ -711,7 +727,10 @@ class SiteController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        return \App\Models\Location::active()->orderBy('sort_order')->orderBy('name')->get()->map(function ($l) use ($currentService, $allPublishedLps, $coreServices) {
+        $locations = \App\Models\Location::active()->orderBy('sort_order')->orderBy('name')->get();
+        $areas = $locations->where('type', 'area')->groupBy('parent_id');
+
+        return $locations->where('type', '!=', 'area')->map(function ($l) use ($currentService, $allPublishedLps, $coreServices, $areas) {
             $locLps = $allPublishedLps->get($l->id, collect());
             $matchedLp = $currentService
                 ? $locLps->first(fn ($lp) => $lp->service_id === $currentService->id && ! $lp->industry_id)
@@ -763,6 +782,12 @@ class SiteController extends Controller
                 'url' => $primaryUrl,
                 'title' => $primaryTitle,
                 'pages' => $pages,
+                'areas' => $areas->get($l->id, collect())->map(fn ($a) => [
+                    'name' => $a->name,
+                    'slug' => $a->slug,
+                    'url' => $a->urlFor($currentService, $allPublishedLps->get($a->id, collect())),
+                    'description' => $a->description,
+                ])->values()->all(),
             ];
         })->values()->all();
     }

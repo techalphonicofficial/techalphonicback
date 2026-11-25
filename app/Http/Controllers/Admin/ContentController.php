@@ -391,7 +391,7 @@ abstract class ContentController extends Controller
         if ($wanted === ContentStatus::Scheduled && (! $at || $at->isPast())) {
             $data['status'] = ContentStatus::Published->value;
         }
-        if (in_array($data['status'], [ContentStatus::Published->value, ContentStatus::Scheduled->value], true) && ! $at) {
+        if (in_array($data['status'], [ContentStatus::Published->value, ContentStatus::Scheduled->value], true) && ! $at && $item->isFillable('published_at')) {
             $data['published_at'] = $item->published_at ?? now();
         }
 

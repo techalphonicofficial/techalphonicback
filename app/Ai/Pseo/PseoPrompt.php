@@ -85,6 +85,7 @@ class PseoPrompt
             'location' => $location ? array_filter([
                 'name' => $location->name,
                 'type' => $location->type,
+                'city' => $location->isArea() ? $location->parent?->name : null,
                 'state' => $location->state,
                 'country' => $location->country,
                 'about' => $this->plain($location->description, 800),

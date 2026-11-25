@@ -68,7 +68,7 @@ class LandingPageGenerator
         ];
         $nameVars = [
             'service_name' => $service->name,
-            'location_name' => $location?->name ?? '',
+            'location_name' => $location?->display_name ?? '',
             'industry_plural' => $industry?->plural_name ?: ($industry?->name ?? ''),
         ];
 

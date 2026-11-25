@@ -38,7 +38,7 @@ class LandingPageController extends ContentController
 
     protected array $sortable = ['title', 'published_at'];
 
-    protected array $listWith = ['service:id,name', 'location:id,name', 'industry:id,name', 'latestAiGeneration'];
+    protected array $listWith = ['service:id,name', 'location:id,parent_id,type,name', 'location.parent:id,name', 'industry:id,name', 'latestAiGeneration'];
 
     public function __construct(private LandingPageGenerator $generator, private PseoContentWriter $writer) {}
 
@@ -64,7 +64,7 @@ class LandingPageController extends ContentController
         return [
             'page_type' => ['label' => 'Type', 'options' => LandingPageType::options()],
             'service_id' => ['label' => 'Service', 'options' => Service::orderBy('name')->pluck('name', 'id')->all()],
-            'location_id' => ['label' => 'Location', 'options' => Location::orderBy('name')->pluck('name', 'id')->all()],
+            'location_id' => ['label' => 'Location', 'options' => Location::with('parent:id,name')->orderBy('name')->get()->pluck('display_name', 'id')->all()],
             'industry_id' => ['label' => 'Industry', 'options' => Industry::orderBy('name')->pluck('name', 'id')->all()],
             'index' => ['label' => 'Indexing', 'options' => ['noindex' => 'Noindex only']],
         ];
@@ -74,7 +74,7 @@ class LandingPageController extends ContentController
     {
         return [
             'services' => Service::orderBy('name')->pluck('name', 'id'),
-            'locations' => Location::orderBy('name')->get(['id', 'name', 'state']),
+            'locations' => Location::with('parent:id,name')->orderBy('name')->get(['id', 'parent_id', 'type', 'name', 'state']),
             'industries' => Industry::orderBy('name')->pluck('name', 'id'),
             'variables' => TemplateRenderer::VARIABLES,
         ];

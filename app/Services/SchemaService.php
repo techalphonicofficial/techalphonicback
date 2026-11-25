@@ -232,8 +232,8 @@ class SchemaService
         $node['name'] = $this->renderer->render($page->heading, $page->templateVariables());
         if ($page->location) {
             $node['areaServed'] = array_filter([
-                '@type' => $page->location->type === 'country' ? 'Country' : ($page->location->type === 'state' ? 'State' : 'City'),
-                'name' => $page->location->name,
+                '@type' => $page->location->type === 'country' ? 'Country' : ($page->location->type === 'state' ? 'State' : ($page->location->isArea() ? 'Place' : 'City')),
+                'name' => $page->location->display_name,
                 'geo' => $page->location->latitude ? [
                     '@type' => 'GeoCoordinates', 'latitude' => $page->location->latitude, 'longitude' => $page->location->longitude,
                 ] : null,
