@@ -59,6 +59,15 @@ class AdminTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_menu_can_be_saved(): void
+    {
+        $menu = \App\Models\Menu::where('location', 'main')->firstOrFail();
+        $this->actingAs($this->admin())->put(route('admin.menus.update', 'main'), [
+            'name' => $menu->name, 'is_active' => 1, 'tree' => json_encode([['label' => 'Blog', 'type' => 'custom', 'url' => '/blog/', 'children' => []]]),
+        ])->assertRedirect()->assertSessionHas('success');
+        $this->assertSame(['Blog'], $menu->items()->pluck('label')->all());
+    }
+
     public function test_dashboard_loads_for_super_admin(): void
     {
         $this->actingAs($this->admin())->get(route('admin.dashboard'))->assertOk()->assertSee('SEO health');

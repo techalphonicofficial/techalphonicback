@@ -95,7 +95,7 @@ Route::prefix(config('site.admin_path'))->name('admin.')->group(function () {
 
         Route::get('menus', [Admin\MenuController::class, 'index'])->name('menus.index');
         Route::get('menus/{location}', [Admin\MenuController::class, 'edit'])->name('menus.edit');
-        Route::put('menus/{location}', [Admin\MenuControllker::class, 'update'])->name('menus.update');
+        Route::put('menus/{location}', [Admin\MenuController::class, 'update'])->name('menus.update');
 
         Route::get('sitemap-import', [Admin\SitemapImportController::class, 'index'])->name('sitemap-import.index');
         Route::post('sitemap-import', [Admin\SitemapImportController::class, 'import'])->name('sitemap-import.import');

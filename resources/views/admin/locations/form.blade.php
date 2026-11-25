@@ -1,4 +1,4 @@
-@extends('admin.content.form', ['tabs' => ['basic' => 'Location', 'local' => 'Local business & content']])
+@extends('admin.content.form', ['tabs' => ['basic' => 'Location'] + ($item->type === 'city' ? ['areas' => 'Areas in this city'] : []) + ['local' => 'Local business & content']])
 
 @section('tab-basic')
 <div class="grid gap-4 md:grid-cols-2" x-data="{ type: @js(old('type', $item->type ?? 'city')) }">
@@ -24,6 +24,32 @@
     <x-admin.field type="textarea" name="description" label="Description" :value="$item->description" rows="4" class="md:col-span-2" />
     <x-admin.media-picker name="hero_image_id" label="Hero image (used by generated pages)" :media="$item->heroImage" />
     <x-admin.field type="number" name="sort_order" label="Order" :value="$item->sort_order ?? 0" />
+</div>
+@endsection
+
+@section('tab-areas')
+<div class="grid gap-5">
+    @if($areas->isNotEmpty())
+        <div class="overflow-x-auto">
+            <table class="a-table">
+                <thead><tr><th>Area</th><th>Slug</th><th>SEO pages</th><th>Status</th><th class="text-right">Actions</th></tr></thead>
+                <tbody>
+                    @foreach($areas as $area)
+                        <tr>
+                            <td><a href="{{ route('admin.locations.edit', $area->id) }}" class="font-semibold text-ink hover:text-brand">{{ $area->name }}</a></td>
+                            <td class="text-slate-600">{{ $area->slug }}</td>
+                            <td class="text-slate-600">{{ $area->landing_pages_count }}</td>
+                            <td><span class="a-badge bg-slate-100 text-slate-600">{{ $area->status === 'published' ? 'Active' : 'Inactive' }}</span></td>
+                            <td class="text-right"><a href="{{ route('admin.locations.edit', $area->id) }}" class="a-btn a-btn-light a-btn-sm"><x-icon name="pen" class="size-3" /> Edit</a></td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
+    @can('locations.create')
+        <x-admin.field type="textarea" name="new_areas_text" label="Add areas (one per line)" rows="6" help="For example: Sector 18, Sector 62, Sector 63 — each on its own line. They are created when you save and appear under this city on the website." />
+    @endcan
 </div>
 @endsection
 

@@ -17,7 +17,7 @@ class MenuSeeder extends Seeder
         $page = fn ($slug) => Page::where('slug', $slug)->first();
         $svc = fn ($slug) => Service::where('slug', $slug)->first();
 
-        // ---------- Main menu with Services mega menu ----------
+        // ---------- Main menu ----------
         $main = $this->menu('main', 'Main header menu');
 
         $devMenu = $this->link($main, null, 'Development', 'service_category', ServiceCategory::where('slug', 'development')->first(), null, 0);
@@ -27,13 +27,15 @@ class MenuSeeder extends Seeder
             }
         }
 
-        $services = $this->link($main, null, 'Services', 'custom', null, null, 1, ['is_mega' => true]);
-        foreach (ServiceCategory::orderBy('sort_order')->get() as $ci => $cat) {
-            $heading = $this->link($main, $services->id, $cat->name, 'service_category', $cat, null, $ci);
-            foreach ($cat->services()->orderBy('sort_order')->get() as $si => $s) {
-                $this->link($main, $heading->id, $s->menu_label ?: $s->name, 'service', $s, null, $si, ['icon' => $s->icon, 'description' => Str::limit($s->short_description, 48)]);
+        // Short list only; the category page shows every service. Same result as the shorten_services_menu migration.
+        $category = ServiceCategory::where('slug', 'digital-marketing')->first();
+        $marketing = $this->link($main, null, 'Digital Marketing', 'service_category', $category, null, 1);
+        foreach (['search-engine-optimization', 'ai-seo-services', 'social-media', 'pay-per-click', 'content-marketing', 'branding'] as $i => $slug) {
+            if ($s = $svc($slug)) {
+                $this->link($main, $marketing->id, $s->menu_label ?: $s->name, 'service', $s, null, $i, ['icon' => $s->icon, 'description' => Str::limit($s->short_description, 48)]);
             }
         }
+        $this->link($main, $marketing->id, 'All digital marketing services', 'service_category', $category, null, 50);
 
         $industries = $this->link($main, null, 'Industries', 'custom', null, '/industries/', 2);
         foreach (LandingPage::serviceIndustry()->published()->with('industry')->get() as $i => $lp) {

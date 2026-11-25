@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Requests\Admin\LocationRequest;
 use App\Models\Location;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class LocationController extends ContentController
 {
@@ -22,6 +24,8 @@ class LocationController extends ContentController
     protected string $labelPlural = 'Locations';
 
     protected array $searchColumns = ['name', 'state', 'slug'];
+
+    protected array $nonFillable = ['new_areas_text'];
 
     protected array $sortable = ['name', 'sort_order'];
 
@@ -50,7 +54,43 @@ class LocationController extends ContentController
 
     protected function defaults(): array
     {
-        return ['status' => 'published', 'type' => 'city', 'country' => 'India'];
+        // "Add area" links open the form with the type and city already chosen.
+        $type = request()->query('type');
+
+        return [
+            'status' => 'published',
+            'type' => is_string($type) && isset(Location::TYPES[$type]) ? $type : 'city',
+            'parent_id' => request()->integer('parent_id') ?: null,
+            'country' => 'India',
+        ];
+    }
+
+    /** City screen → "Areas" tab: one new area per line. Names the city already has are skipped. */
+    protected function afterSave(Model $item, FormRequest $request): void
+    {
+        $names = collect(preg_split('/\r?\n/', (string) $request->input('new_areas_text')))
+            ->map(fn ($n) => trim($n))->filter(fn ($n) => Str::slug($n) !== '')->unique(fn ($n) => Str::slug($n));
+        if ($item->type !== 'city' || $names->isEmpty() || ! $request->user()->can('locations.create')) {
+            return;
+        }
+
+        $existing = $item->areas()->pluck('name')->map(fn ($n) => Str::slug($n))->all();
+        $order = (int) $item->areas()->max('sort_order');
+        foreach ($names as $name) {
+            if (in_array(Str::slug($name), $existing, true)) {
+                continue;
+            }
+            $base = Str::limit(Str::slug($name).'-'.$item->slug, 110, '');
+            $slug = $base;
+            for ($i = 2; Location::withTrashed()->where('slug', $slug)->exists(); $i++) {
+                $slug = $base.'-'.$i;
+            }
+            Location::create([
+                'parent_id' => $item->id, 'type' => 'area', 'name' => $name, 'slug' => $slug,
+                'state' => $item->state, 'country' => $item->country, 'sort_order' => ++$order,
+                'status' => $request->user()->can('locations.publish') ? 'published' : 'draft',
+            ]);
+        }
     }
 
     protected function applyFilters($query, Request $request): void
@@ -78,6 +118,7 @@ class LocationController extends ContentController
         return [
             'parents' => (clone $parents)->whereIn('type', ['state', 'country', 'region'])->pluck('name', 'id'),
             'cities' => (clone $parents)->where('type', 'city')->pluck('name', 'id'),
+            'areas' => $item->exists ? $item->areas()->withCount('landingPages')->get() : collect(),
         ];
     }
 }

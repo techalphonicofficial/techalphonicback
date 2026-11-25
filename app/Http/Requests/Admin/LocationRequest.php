@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\Concerns\ContentRules;
 use App\Models\Location;
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -66,6 +67,18 @@ class LocationRequest extends FormRequest
             'seo_description' => ['nullable', 'string', 'max:500'],
             'status' => ['required', Rule::in(['published', 'draft'])],
             'sort_order' => ['nullable', 'integer', 'min:0'],
+            'new_areas_text' => ['nullable', 'string', 'max:10000', function (string $attr, $value, Closure $fail) {
+                $lines = array_filter(array_map('trim', preg_split('/\r?\n/', (string) $value)));
+                if (count($lines) > 100) {
+                    $fail('Add at most 100 areas at a time.');
+                }
+                foreach ($lines as $line) {
+                    if (mb_strlen($line) > 120) {
+                        $fail('Area names can be at most 120 characters (one area per line).');
+                        break;
+                    }
+                }
+            }],
         ];
     }
 

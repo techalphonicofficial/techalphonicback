@@ -114,6 +114,41 @@ class LocationAreaTest extends TestCase
         }
     }
 
+    public function test_city_screen_adds_many_areas_at_once_and_skips_existing_ones(): void
+    {
+        $this->area('Sector 62');
+        $noida = $this->city();
+        $city = ['name' => 'Noida', 'slug' => 'noida', 'type' => 'city', 'state' => $noida->state, 'country' => 'India', 'status' => 'published', 'parent_id' => $noida->parent_id];
+        $admin = $this->actingAs($this->admin());
+
+        $admin->put(route('admin.locations.update', $noida->id), $city + ['new_areas_text' => "Sector 18\r\n\r\n sector 62 \nSector 18\nFilm City"])->assertSessionHasNoErrors()->assertRedirect();
+
+        $this->assertSame(['Sector 62', 'Sector 18', 'Film City'], $noida->areas()->pluck('name')->all());
+        $this->assertSame('Uttar Pradesh', Location::where('slug', 'film-city-noida')->firstOrFail()->state);
+        $admin->get(route('admin.locations.edit', $noida->id))->assertOk()->assertSee('Film City')->assertSee('new_areas_text');
+
+        $admin->put(route('admin.locations.update', $noida->id), $city + ['new_areas_text' => implode("\n", range(1, 101))])->assertSessionHasErrors('new_areas_text');
+    }
+
+    public function test_new_city_can_be_created_together_with_its_areas(): void
+    {
+        $this->actingAs($this->admin())->post(route('admin.locations.store'), [
+            'name' => 'Dubai', 'slug' => '', 'type' => 'city', 'country' => 'UAE', 'status' => 'published', 'new_areas_text' => "Marina\nDeira",
+        ])->assertSessionHasNoErrors()->assertRedirect();
+
+        $entry = $this->cityEntry($this->resolve('/website-development/')->assertOk(), 'dubai');
+        $this->assertSame('UAE', $entry['country']);
+        $this->assertSame(['Marina', 'Deira'], array_column($entry['areas'], 'name'));
+    }
+
+    public function test_add_area_link_preselects_type_and_city_and_areas_have_no_areas_tab(): void
+    {
+        $admin = $this->actingAs($this->admin());
+        $admin->get(route('admin.locations.index'))->assertOk()->assertSee('Add city')->assertSee('Add area');
+        $admin->get(route('admin.locations.create', ['type' => 'area', 'parent_id' => $this->city()->id]))->assertOk()
+            ->assertSee('<option value="'.$this->city()->id.'" selected>Noida</option>', false)->assertDontSee('new_areas_text');
+    }
+
     public function test_service_page_lists_cities_with_their_areas(): void
     {
         $area = $this->area();
