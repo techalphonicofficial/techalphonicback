@@ -40,6 +40,8 @@ Route::get('case-studies', FrontendRedirectController::class)->name('case-studie
 Route::get('case-studies/{slug}', FrontendRedirectController::class)->where('slug', '[a-z0-9\-]+')->name('case-studies.show');
 
 Route::get('industries', FrontendRedirectController::class)->name('industries.index');
+Route::get('location/{slug}', FrontendRedirectController::class)->where('slug', '[a-z0-9\-]+')->name('location.show');
+Route::get('location/{service}/{slug}', FrontendRedirectController::class)->where(['service' => '[a-z0-9\-]+', 'slug' => '[a-z0-9\-]+'])->name('location.service');
 
 // Admin "Save & preview" links land here and open the draft on the Next.js preview route.
 Route::get('preview/{type}/{token}', FrontendRedirectController::class)

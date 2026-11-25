@@ -455,18 +455,42 @@ HTML,
             $laPage->syncFaqs($laIds);
         }
 
-        // Drop auto-generated slug_change redirects from seeder updates
-        Redirect::where('source', 'slug_change')->delete();
+        // Ensure all active locations have a published SEO location landing page and publish existing location pages
+        foreach (Location::active()->get() as $loc) {
+            $slug = 'seo-company-in-'.$loc->slug;
+            $lp = LandingPage::where('slug', $slug)->first()
+                ?? LandingPage::where('service_id', $seo->id)->where('location_id', $loc->id)->whereNull('industry_id')->first()
+                ?? $gen->create(LandingPageType::ServiceLocation, $seo, $loc, null, 'bulk');
 
-        // Demo of the review workflow: keep generated drafts intact if they don't exist
-        foreach (['delhi', 'ghaziabad', 'gurgaon', 'greater-noida'] as $slug) {
-            if (! LandingPage::where('slug', 'seo-company-in-'.$slug)->exists()) {
-                $gen->create(LandingPageType::ServiceLocation, $seo, Location::where('slug', $slug)->first(), null, 'bulk');
+            if ($lp && $lp->status !== ContentStatus::Published) {
+                $lp->update([
+                    'status' => ContentStatus::Published,
+                    'published_at' => $lp->published_at ?? now(),
+                ]);
+                $lp->seo()->update([
+                    'robots_index' => true,
+                    'include_in_sitemap' => true,
+                ]);
             }
         }
+
         $realEstate = Industry::where('slug', 'real-estate')->first();
         if ($realEstate && ! LandingPage::where('slug', 'seo-for-real-estate-in-noida')->exists()) {
             $gen->create(LandingPageType::ServiceLocationIndustry, $seo, Location::where('slug', 'noida')->first(), $realEstate, 'generator');
         }
+
+        // Publish all remaining draft location landing pages so no location URL returns 404
+        foreach (LandingPage::where('status', ContentStatus::Draft)->get() as $draftLp) {
+            $draftLp->update([
+                'status' => ContentStatus::Published,
+                'published_at' => $draftLp->published_at ?? now(),
+            ]);
+            $draftLp->seo()->update([
+                'robots_index' => true,
+                'include_in_sitemap' => true,
+            ]);
+        }
+
+        Redirect::where('source', 'slug_change')->delete();
     }
 }

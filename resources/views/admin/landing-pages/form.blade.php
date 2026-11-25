@@ -14,11 +14,16 @@
     <p class="font-semibold">Avoid thin “doorway” pages</p>
     <p class="mt-1">Give every page something unique: local facts, an industry-specific introduction, its own FAQs and real examples. Pages start as <strong>Draft + noindex</strong>; switch indexing on in the SEO tab once the content is genuinely useful.</p>
 </div>
-<div class="grid gap-4 md:grid-cols-2">
-    <x-admin.field type="select" name="page_type" label="Page type" :value="$item->page_type?->value ?? $item->page_type" :options="\App\Enums\LandingPageType::options()" :empty="false" />
+<div class="grid gap-4 md:grid-cols-2"
+     x-data="{ pageType: @js(old('page_type', $item->page_type?->value ?? $item->page_type ?? 'service_location')) }">
+    <x-admin.field type="select" name="page_type" label="Page type" :value="$item->page_type?->value ?? $item->page_type" :options="\App\Enums\LandingPageType::options()" :empty="false" x-model="pageType" />
     <x-admin.field type="select" name="service_id" label="Service" :value="$item->service_id" :options="$services" required />
-    <x-admin.field type="select" name="location_id" label="Location" :value="$item->location_id" :options="$locations->mapWithKeys(fn ($l) => [$l->id => $l->name.($l->state ? ', '.$l->state : '')])" help="Required for location page types." />
-    <x-admin.field type="select" name="industry_id" label="Industry" :value="$item->industry_id" :options="$industries" help="Required for industry page types." />
+    <div x-show="pageType !== 'service_industry'" x-cloak>
+        <x-admin.field type="select" name="location_id" label="Location" :value="$item->location_id" :options="$locations->mapWithKeys(fn ($l) => [$l->id => $l->name.($l->state ? ', '.$l->state : '')])" help="Required for location page types." ::disabled="pageType === 'service_industry'" ::required="pageType !== 'service_industry'" />
+    </div>
+    <div x-show="pageType !== 'service_location'" x-cloak>
+        <x-admin.field type="select" name="industry_id" label="Industry" :value="$item->industry_id" :options="$industries" help="Required for industry page types." ::disabled="pageType === 'service_location'" ::required="pageType !== 'service_location'" />
+    </div>
     <x-admin.field name="title" label="Internal title / link anchor" :value="$item->title" required class="md:col-span-2" />
     <div class="md:col-span-2" x-data="slugField(@js(old('slug', $item->slug)), 'title', true)">
         <label class="a-label" for="slug">URL slug</label>

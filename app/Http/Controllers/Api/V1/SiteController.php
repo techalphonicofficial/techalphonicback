@@ -109,6 +109,8 @@ class SiteController extends Controller
             $is('case-studies') => $this->caseStudyIndex(),
             $is("case-studies/$slug") => $this->model(CaseStudy::published()->where('slug', $s[1])->with(['seo.ogImage', 'featuredImage', 'industry', 'service', 'testimonial.photo'])->first()),
             $is('industries') => $this->industries(),
+            $is("location/$slug") => $this->location($s[1]),
+            $is("location/$slug/$slug") => $this->location($s[2], $s[1]),
             $is('search') => $this->search($request),
             $is('preview/[a-z_]+/[A-Za-z0-9]{48}') => $this->preview($s[1], explode('/', $path)[2]),
             $is($slug) => $this->slug($s[0]),
@@ -305,26 +307,7 @@ class SiteController extends Controller
         $blocks = $service->visibleBlocks;
         $technologies = collect($service->technologies ?: [])->map(fn ($t) => is_array($t) ? $t : ['title' => $t])->all();
 
-        $serviceLocations = $service->landingPages()->published()->serviceLocation()->with('location')->get();
-        if ($serviceLocations->isNotEmpty()) {
-            $locations = $serviceLocations->map(fn ($lp) => [
-                'name' => $lp->location?->name ?: $lp->title,
-                'country' => $lp->location?->country ?: 'India',
-                'state' => $lp->location?->state,
-                'type' => $lp->location?->type ?: 'city',
-                'url' => $lp->url,
-                'title' => $lp->title,
-            ])->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)->values()->all();
-        } else {
-            $locations = \App\Models\Location::active()->orderBy('name')->get()->map(fn ($l) => [
-                'name' => $l->name,
-                'country' => $l->country ?: 'India',
-                'state' => $l->state,
-                'type' => $l->type ?: 'city',
-                'url' => url('/location/'.$l->slug.'/'),
-                'title' => $service->name.' in '.$l->name,
-            ])->values()->all();
-        }
+        $locations = $this->locationDirectory($service);
 
         return [
             'service' => [
@@ -358,14 +341,7 @@ class SiteController extends Controller
 
     private function category(ServiceCategory $category): array
     {
-        $locations = \App\Models\Location::active()->orderBy('name')->get()->map(fn ($l) => [
-            'name' => $l->name,
-            'country' => $l->country ?: 'India',
-            'state' => $l->state,
-            'type' => $l->type ?: 'city',
-            'url' => url('/location/'.$l->slug.'/'),
-            'title' => $category->name.' in '.$l->name,
-        ])->values()->all();
+        $locations = $this->locationDirectory();
 
         return [
             'category' => [
@@ -413,6 +389,7 @@ class SiteController extends Controller
             'testimonials' => $page->show_testimonials ? Testimonial::active()->with('photo')
                 ->orderByRaw('service_id = ? desc', [$page->service_id])->limit(6)->get()->map(fn ($t) => $this->present->testimonial($t))->all() : [],
             'blogs' => $this->links->relatedBlogs($page)->map(fn ($b) => $this->present->blogCard($b))->values()->all(),
+            'locations' => $this->locationDirectory($service),
             'blocks' => $this->blocks->present($page->visibleBlocks, $page, $vars),
         ];
     }
@@ -577,6 +554,217 @@ class SiteController extends Controller
                 'pages' => ($pages[$i->id] ?? collect())->map(fn ($p) => ['name' => ($p->service?->name).' for '.$i->name, 'url' => $p->url])->values()->all(),
             ])->all(),
         ]);
+    }
+
+    private function location(string $locationSlug, ?string $serviceSlug = null): JsonResponse
+    {
+        $location = \App\Models\Location::active()->with('heroImage')->where('slug', $locationSlug)->first();
+        if (! $location) {
+            return $this->notFound();
+        }
+
+        $service = $serviceSlug
+            ? Service::published()->with(['seo.ogImage', 'heroImage', 'featuredImage', 'category'])->where('slug', $serviceSlug)->first()
+            : null;
+        if ($serviceSlug && ! $service) {
+            return $this->notFound();
+        }
+
+        // If a dedicated published LandingPage exists for this (service, location), use it directly.
+        if ($service) {
+            $existing = LandingPage::published()
+                ->serviceLocation()
+                ->where('service_id', $service->id)
+                ->where('location_id', $location->id)
+                ->with(['seo.ogImage', 'seo.twitterImage', 'service.category', 'location', 'industry', 'featuredImage', 'visibleBlocks'])
+                ->first();
+            if ($existing) {
+                return $this->model($existing);
+            }
+        } else {
+            $existing = LandingPage::published()
+                ->serviceLocation()
+                ->where('location_id', $location->id)
+                ->with(['seo.ogImage', 'seo.twitterImage', 'service.category', 'location', 'industry', 'featuredImage', 'visibleBlocks'])
+                ->orderBy('id')
+                ->first();
+            if ($existing) {
+                return $this->model($existing);
+            }
+            $service = Service::published()->with(['heroImage', 'featuredImage', 'category'])->where('slug', 'search-engine-optimization')->first()
+                ?? Service::published()->with(['heroImage', 'featuredImage', 'category'])->first();
+        }
+
+        $siteName = setting('site_name', 'Tech Alphonic');
+        $serviceName = $service ? $service->name : 'Digital Marketing & Web Development';
+        $serviceLower = mb_strtolower($serviceName);
+        $locName = $location->name;
+        $regionLabel = collect([$location->state, $location->country])->filter()->unique()->implode(', ') ?: 'India';
+
+        $canonical = $serviceSlug
+            ? slash_url('/location/'.$serviceSlug.'/'.$location->slug)
+            : slash_url('/location/'.$location->slug);
+
+        $title = "{$serviceName} Company in {$locName}";
+        $metaDescription = "Looking for the best {$serviceLower} company in {$locName}? {$siteName} delivers data-driven {$serviceLower} solutions across {$locName} ({$regionLabel}) with transparent reporting and measurable ROI.";
+
+        $crumbs = [
+            ['name' => 'Home', 'url' => slash_url('/')],
+        ];
+        if ($service) {
+            $crumbs[] = ['name' => $service->name, 'url' => $service->url];
+        }
+        $crumbs[] = ['name' => $locName, 'url' => null];
+
+        $seo = $this->seo->make($title, $metaDescription, $crumbs, [
+            'canonical' => $canonical,
+            'title' => "{$title} | {$siteName}",
+        ]);
+
+        $faqs = $service ? $this->faqs->for($service) : Faq::active()->whereHas('category', fn ($q) => $q->where('slug', 'general'))->orderBy('sort_order')->limit(6)->get();
+
+        $otherLocations = \App\Models\Location::active()->whereKeyNot($location->id)->orderBy('sort_order')->limit(8)->get()->map(fn ($l) => [
+            'name' => "{$serviceName} in {$l->name}",
+            'url' => $serviceSlug ? slash_url('/location/'.$serviceSlug.'/'.$l->slug) : slash_url('/location/'.$l->slug),
+        ])->values()->all();
+
+        $otherServices = Service::published()->whereNull('parent_id')->when($service, fn ($q) => $q->whereKeyNot($service->id))->orderBy('sort_order')->limit(8)->get()->map(fn ($s) => [
+            'name' => "{$s->name} in {$locName}",
+            'url' => slash_url('/location/'.$s->slug.'/'.$location->slug),
+            'description' => $s->short_description,
+            'icon' => $s->icon,
+        ])->values()->all();
+
+        $related = array_values(array_filter([
+            $otherServices ? ['title' => "More services in {$locName}", 'links' => $otherServices] : null,
+            $otherLocations ? ['title' => "{$serviceName} in other locations", 'links' => $otherLocations] : null,
+        ]));
+
+        $features = collect($service?->features ?: [])->take(6);
+        $featuresHtml = $features->isNotEmpty()
+            ? '<ul>'.$features->map(fn ($f) => '<li><strong>'.e($f['title'] ?? '').':</strong> '.e($f['text'] ?? '').'</li>')->implode('').'</ul>'
+            : '<p>We deliver end-to-end strategy, execution, and transparent monthly reporting tailored to your business goals.</p>';
+
+        $data = [
+            'faqs' => $this->present->faqs($faqs),
+            'related' => $related,
+            'is_preview' => false,
+            'page' => [
+                'hero_layout' => 'split',
+                'faq_enabled' => true,
+                'faq_title' => "{$serviceName} in {$locName} — Frequently Asked Questions",
+                'featured_image' => $this->present->media($location->heroImage ?? $service?->heroImage ?? $service?->featuredImage),
+            ],
+            'service' => $service ? ['name' => $service->name] : ['name' => $serviceName],
+            'location' => ['name' => $locName],
+            'industry' => null,
+            'site_name' => $siteName,
+            'h1' => "{$serviceName} Company in [[{$locName}]]",
+            'subheading' => "Trusted {$serviceName} Partner in {$locName}",
+            'introduction' => "<p>Looking for a trusted {$serviceLower} company in <strong>{$locName}</strong>? {$siteName} partners with startups, growing SMBs, and enterprises across {$locName} ({$regionLabel}) to deliver measurable growth, qualified leads, and strong return on investment.</p>",
+            'content' => "<h2>Why Businesses in {$locName} Choose {$siteName} for {$serviceName}</h2><p>".e($service?->short_description ?: "At {$siteName}, we combine 7+ years of industry expertise, AI-driven insights, and proven execution to help brands in {$locName} dominate their market.")."</p>".($service?->content ?: ''),
+            'sections' => [
+                [
+                    'heading' => "Our {$serviceName} Solutions in {$locName}",
+                    'content' => $featuresHtml,
+                ],
+            ],
+            'benefits' => $service?->benefits ?: [
+                ['title' => 'Local Market Expertise', 'text' => "Tailored strategies built around customer behavior and competitive dynamics in {$locName}.", 'icon' => 'map-pin'],
+                ['title' => 'Data-Driven ROI', 'text' => 'Every campaign and technical deliverable is tracked against real leads, conversions, and revenue.', 'icon' => 'chart'],
+                ['title' => 'Dedicated Account Manager', 'text' => 'Direct communication with senior specialists and transparent monthly reporting.', 'icon' => 'users'],
+                ['title' => 'No Long-Term Lock-In', 'text' => 'Flexible month-to-month plans starting at ₹9,999/mo with zero hidden charges.', 'icon' => 'shield'],
+            ],
+            'process' => $service?->process ?: [],
+            'why_choose_us' => [
+                ['title' => '7+ Years of Proven Experience', 'text' => "Over 1,500+ projects delivered for clients across {$locName}, India, and global markets.", 'icon' => 'award'],
+                ['title' => 'Tailored Local & National Strategy', 'text' => "Custom roadmaps built around your industry, audience, and growth targets in {$locName}.", 'icon' => 'sliders'],
+                ['title' => 'Transparent Reporting & Support', 'text' => 'Clear weekly/monthly progress reports on rankings, traffic, leads, and conversions.', 'icon' => 'chart'],
+            ],
+            'cta' => [
+                'heading' => "Ready to Grow Your {$locName} Business With [[{$serviceName}]]?",
+                'text' => "Get a free consultation and custom {$serviceLower} strategy for your {$locName} business within 24 hours.",
+            ],
+            'local_facts' => $location->local_facts ?? [],
+            'industries' => $this->blocks->one('industries', ['limit' => 10], $service ?? $location)['extra']['industries'] ?? [],
+            'testimonials' => Testimonial::active()->with('photo')->when($service, fn ($q) => $q->orderByRaw('service_id = ? desc', [$service->id]))->limit(6)->get()->map(fn ($t) => $this->present->testimonial($t))->all(),
+            'blogs' => $service ? $this->links->relatedBlogs($service)->map(fn ($b) => $this->present->blogCard($b))->values()->all() : [],
+            'locations' => $this->locationDirectory($service),
+            'blocks' => [],
+        ];
+
+        return $this->page('landing', $seo, $data);
+    }
+
+    /** Builds the India + USA/Global location directory along with created pages for each location. */
+    private function locationDirectory(?Service $currentService = null): array
+    {
+        $allPublishedLps = LandingPage::published()
+            ->whereNotNull('location_id')
+            ->with(['service', 'location', 'industry'])
+            ->orderBy('id')
+            ->get()
+            ->groupBy('location_id');
+
+        $coreServices = Service::published()
+            ->whereIn('slug', ['search-engine-optimization', 'website-development', 'local-seo', 'ecommerce-seo', 'custom-web-development', 'app-development'])
+            ->orderBy('sort_order')
+            ->get();
+
+        return \App\Models\Location::active()->orderBy('sort_order')->orderBy('name')->get()->map(function ($l) use ($currentService, $allPublishedLps, $coreServices) {
+            $locLps = $allPublishedLps->get($l->id, collect());
+            $matchedLp = $currentService
+                ? $locLps->first(fn ($lp) => $lp->service_id === $currentService->id && ! $lp->industry_id)
+                : ($locLps->first(fn ($lp) => ! $lp->industry_id) ?? $locLps->first());
+
+            $primaryUrl = $matchedLp
+                ? $matchedLp->url
+                : ($currentService ? slash_url('/location/'.$currentService->slug.'/'.$l->slug) : slash_url('/location/'.$l->slug));
+
+            $primaryTitle = $matchedLp
+                ? $matchedLp->title
+                : (($currentService ? $currentService->name : 'Digital Marketing & Web Development').' in '.$l->name);
+
+            $pages = [];
+            $seenUrls = [];
+
+            foreach ($locLps as $lp) {
+                $pages[] = [
+                    'title' => $lp->title,
+                    'url' => $lp->url,
+                    'service' => $lp->service?->name,
+                    'is_dedicated' => true,
+                ];
+                $seenUrls[$lp->url] = true;
+            }
+
+            foreach ($coreServices as $svc) {
+                $hasDedicated = $locLps->contains(fn ($lp) => $lp->service_id === $svc->id && ! $lp->industry_id);
+                if (! $hasDedicated) {
+                    $u = slash_url('/location/'.$svc->slug.'/'.$l->slug);
+                    if (! isset($seenUrls[$u])) {
+                        $pages[] = [
+                            'title' => $svc->name.' in '.$l->name,
+                            'url' => $u,
+                            'service' => $svc->name,
+                            'is_dedicated' => false,
+                        ];
+                        $seenUrls[$u] = true;
+                    }
+                }
+            }
+
+            return [
+                'name' => $l->name,
+                'slug' => $l->slug,
+                'country' => $l->country ?: 'India',
+                'state' => $l->state,
+                'type' => $l->type ?: 'city',
+                'url' => $primaryUrl,
+                'title' => $primaryTitle,
+                'pages' => $pages,
+            ];
+        })->values()->all();
     }
 
     private function search(Request $request): JsonResponse

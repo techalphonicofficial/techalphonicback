@@ -73,6 +73,14 @@ class LandingPageRequest extends FormRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            'location_id.prohibited' => 'Location cannot be selected for "Service + Industry" pages. Clear Location or change Page type to "Service + Location + Industry".',
+            'industry_id.prohibited' => 'Industry cannot be selected for "Service + Location" pages. Clear Industry or change Page type to "Service + Location + Industry".',
+        ];
+    }
+
     public function after(): array
     {
         return [function (Validator $v) {
