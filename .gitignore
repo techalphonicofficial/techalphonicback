@@ -17,6 +17,7 @@ npm-debug.log
 yarn-error.log
 /auth.json
 /storage/frontend-backup-*
+/storage/backups
 /storage/logs/*.log
 /.fleet
 /.idea

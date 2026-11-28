@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             BlogSeeder::class,
             MenuSeeder::class,
             RedirectSeeder::class,
+            OldSiteImageMigrationSeeder::class,
         ]);
     }
 }
