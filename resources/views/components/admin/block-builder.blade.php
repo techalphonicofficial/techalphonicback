@@ -99,6 +99,10 @@
                                         <template x-if="b.type === 'pricing'">
                                             <div class="grid gap-2 sm:col-span-4">
                                                 <textarea class="a-input" rows="3" x-model="it.features" placeholder="Features (one per line)"></textarea>
+                                                <div class="grid grid-cols-2 gap-2">
+                                                    <input class="a-input" x-model="it.cta_text" placeholder="Button text (default: Get Started)">
+                                                    <input class="a-input" x-model="it.badge" placeholder="Badge (default: Most Popular)">
+                                                </div>
                                                 <label class="text-xs"><input type="checkbox" class="a-check" x-model="it.featured"> Highlight as most popular</label>
                                             </div>
                                         </template>

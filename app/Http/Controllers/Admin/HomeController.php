@@ -36,7 +36,7 @@ class HomeController extends Controller
         return view('admin.home.edit', [
             'sections' => $sections,
             'mediaThumbs' => $mediaThumbs,
-            'hero' => HeroSlide::with(['image', 'background'])->orderBy('sort_order')->first() ?? new HeroSlide(['is_active' => true, 'show_form' => true]),
+            'hero' => HeroSlide::with(['image', 'background', 'backgroundVideo'])->orderBy('sort_order')->first() ?? new HeroSlide(['is_active' => true, 'show_form' => true]),
             'faqs' => Faq::active()->orderBy('question')->get(['id', 'question']),
             'icons' => Icons::names(),
         ]);
@@ -102,7 +102,7 @@ class HomeController extends Controller
         if ($url === '') {
             return null;
         }
-        if (! preg_match('#^(https?://|/|#|mailto:|tel:)#i', $url)) {
+        if (! preg_match('~^(https?://|/|#|mailto:|tel:)~i', $url)) {
             $url = 'https://'.$url;
         }
 

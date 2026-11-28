@@ -6,6 +6,7 @@ use App\Models\Blog;
 use App\Models\CaseStudy;
 use App\Models\Industry;
 use App\Models\Media;
+use App\Models\Menu;
 use App\Models\Portfolio;
 use App\Models\Service;
 use App\Models\SocialLink;
@@ -24,7 +25,7 @@ class SitePresenter
     /** Settings the public site may see. Secrets (notification emails, robots, etc.) stay server-side. */
     private const PUBLIC_SETTINGS = [
         'site_name', 'site_tagline', 'primary_color', 'secondary_color', 'accent_color',
-        'phone', 'phone_secondary', 'email', 'address_line', 'address_locality', 'address_region', 'postal_code',
+        'phone', 'phone_secondary', 'email', 'sales_email', 'address_line', 'address_locality', 'address_region', 'postal_code',
         'country', 'map_embed_url', 'business_hours',
         'whatsapp_enabled', 'whatsapp_position', 'call_enabled', 'call_number', 'call_text',
         'default_meta_title', 'title_separator', 'twitter_handle', 'discourage_indexing',
@@ -111,6 +112,7 @@ class SitePresenter
                 'popup_image' => $this->media($s->media('popup_image')),
                 'whatsapp_url' => $s->whatsappUrl(),
                 'phone_href' => $phone ? $s->telHref($phone) : null,
+                'phone_secondary_href' => $s->get('phone_secondary') ? $s->telHref($s->get('phone_secondary')) : null,
                 'call_href' => $callNumber ? $s->telHref($callNumber) : null,
                 'full_address' => $s->fullAddress() ?: null,
                 'copyright' => $s->replaceTokens((string) $s->get('footer_copyright')),
@@ -118,6 +120,7 @@ class SitePresenter
                 'form_services' => ContentCache::remember('form.services', fn () => Service::published()->whereNull('parent_id')->orderBy('sort_order')->pluck('name')->all()),
             ],
             'menus' => collect(self::MENUS)->mapWithKeys(fn ($loc) => [$loc => $this->menus->tree($loc)])->all(),
+            'menu_titles' => ContentCache::remember('menus.titles', fn () => Menu::whereIn('location', self::MENUS)->where('is_active', true)->pluck('name', 'location')->map(fn ($n) => preg_replace('/^Footer\s*[—–-]\s*/u', '', (string) $n))->all()),
             'socials' => ContentCache::remember('social.links', fn () => SocialLink::active()->get())
                 ->map(fn ($l) => ['platform' => $l->platform, 'url' => $l->url, 'icon' => $l->icon ?: strtolower($l->platform)])->values()->all(),
             'popular_services' => ContentCache::remember('404.popular', fn () => Service::published()->where('is_featured', true)->orderBy('sort_order')->limit(6)->get())
@@ -196,8 +199,10 @@ class SitePresenter
             'plural_name' => $i->plural_name,
             'description' => $i->description,
             'icon' => $i->icon,
+            'image' => $this->media($i->image),
             'challenges' => $i->challenges ?: [],
             'solutions' => $i->solutions ?: [],
+            'benefits' => $i->benefits ?: [],
         ];
     }
 

@@ -59,7 +59,7 @@ class MenuSeeder extends Seeder
             $this->link($company, null, $l, $t, is_string($target) ? null : $target, is_string($target) ? $target : null, $i);
         }
 
-        $footerSvc = $this->menu('footer_services', 'Footer — Services');
+        $footerSvc = $this->menu('footer_services', 'Footer — Marketing');
         foreach (['pay-per-click', 'social-media', 'content-marketing', 'branding', 'app-store-seo'] as $i => $slug) {
             $this->link($footerSvc, null, $svc($slug)?->name ?? $slug, 'service', $svc($slug), null, $i);
         }

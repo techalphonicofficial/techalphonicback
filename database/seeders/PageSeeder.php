@@ -82,13 +82,23 @@ HTML,
         ]);
 
         // All 7 package categories, 8 optional add-ons, and 4-step process verbatim from https://seashell-stork-114708.hostingersite.com/packages/
-        $this->page('packages', 'Packages & Pricing', 'Affordable Packages for [[Every Business Goal]]', 'default', [
-            'hero_subheading' => 'Transparent Pricing',
-            'excerpt' => 'From startups to enterprises — choose the right plan across SEO, Digital Marketing, Web Development, Social Media & more. No hidden charges. Real results.',
+        $this->page('packages', 'Packages & Pricing', 'Affordable Packages for [[Every Business Goal]]', 'packages', [
+            'hero_subheading' => 'Transparent & Honest Pricing',
+            'excerpt' => 'Transparent, results-oriented pricing — choose the best plan across SEO, Social Media, Website Development, Paid Ads, or custom hybrid packages. Switch or cancel anytime.',
             'content' => '',
             'meta_title' => 'Packages & Pricing — Website, SEO, Social Media, PPC & Branding | Tech Alphonic',
             'meta_description' => 'From startups to enterprises — choose the right plan across SEO, Digital Marketing, Web Development, Social Media & more. No hidden charges. Real results.',
         ], [
+            [self::BLOCK_STATISTICS, [
+                'heading' => '',
+                'background' => 'white',
+                'items' => [
+                    ['value' => '7', 'suffix' => '+', 'title' => 'Years of Experience'],
+                    ['value' => '1.5k', 'suffix' => '', 'title' => 'Projects Completed'],
+                    ['value' => '60', 'suffix' => '+', 'title' => 'Team of Experts'],
+                    ['value' => '100', 'suffix' => '%', 'title' => 'Satisfied Clients'],
+                ],
+            ]],
             [self::BLOCK_PRICING, [
                 'heading' => 'Website Development Packages',
                 'subheading' => 'All-inclusive plans with no hidden fees. Switch or cancel anytime. Every package includes a dedicated account manager.',
@@ -563,13 +573,33 @@ HTML,
                     ['title' => 'Grow & Scale', 'text' => 'Monitor real-time results through your dashboard. Watch your business grow every month.'],
                 ],
             ]],
+            [self::BLOCK_FEATURE_CARDS, [
+                'eyebrow' => 'Why TechAlphonic',
+                'heading' => 'Why [[1000+ Clients]] Trust Us',
+                'subheading' => 'We’re not just an agency — we’re your long-term digital growth and engineering partner.',
+                'background' => 'mist',
+                'items' => [
+                    ['icon' => 'trending-up', 'title' => 'Proven ROI Results', 'text' => 'Average 3x ROI for our clients within 6 months. We deliver with data-backed, conversion-focused strategies.'],
+                    ['icon' => 'user-check', 'title' => 'Dedicated Account Manager', 'text' => 'Single point of contact for your project. No tickets, no delays — direct communication and fast execution.'],
+                    ['icon' => 'file-text', 'title' => 'Transparent Reporting', 'text' => "Weekly and monthly reports with clear ranking, traffic, lead, and revenue metrics. You always know what's happening."],
+                    ['icon' => 'shield-check', 'title' => 'No Long-Term Lock-in', 'text' => 'Flexible month-to-month plans with zero hidden fees. Cancel anytime with a 30-day notice. We earn your trust every month.'],
+                    ['icon' => 'sparkles', 'title' => 'AI-Powered Strategies', 'text' => 'We leverage cutting-edge AI tools for SEO, content creation, and ad optimization to keep you ahead of competitors.'],
+                    ['icon' => 'award', 'title' => 'Industry Expertise', 'text' => '7+ years across 20+ industries — healthcare, e-commerce, real estate, finance, education, logistics, and SaaS.'],
+                ],
+            ]],
+            [self::BLOCK_TESTIMONIALS, [
+                'eyebrow' => 'Client Testimonials',
+                'heading' => 'What Our [[Clients Say]]',
+                'subheading' => 'Real feedback from businesses scaling with TechAlphonic.',
+                'background' => 'white',
+                'limit' => 3,
+            ]],
             [self::BLOCK_CTA, [
-                'heading' => 'Ready to Build Your [[Dream Website]]?',
-                'subheading' => 'All-inclusive plans with no hidden fees. Switch or cancel anytime. Every package includes a dedicated account manager.',
-                'primary_text' => 'Get a Free Consultation',
-                'primary_url' => '/contact/',
-                'secondary_text' => 'Call +91 98991 84918',
-                'secondary_url' => 'tel:+919899184918',
+                'eyebrow' => 'Fast Consultation',
+                'heading' => 'Ready to Build Your Dream Project?',
+                'subheading' => 'Book a free 30-minute consultation call with our solution architect and get a tailored growth strategy.',
+                'cta_text' => 'Book a Free Consultation',
+                'cta_url' => '/contact/',
             ]],
         ]);
 
@@ -612,8 +642,8 @@ HTML,
             [self::BLOCK_CTA, [
                 'heading' => 'Don’t See Your Industry Listed?',
                 'subheading' => 'We work with businesses across 30+ verticals. Talk to our SEO specialists and get a free custom industry SEO audit and strategy within 24 hours.',
-                'primary_text' => 'Request a Free Industry SEO Audit',
-                'primary_url' => '/contact/',
+                'cta_text' => 'Request a Free Industry SEO Audit',
+                'cta_url' => '/contact/',
             ]],
         ]);
 

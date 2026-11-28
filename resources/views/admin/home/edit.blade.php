@@ -15,8 +15,9 @@
             <x-admin.field type="textarea" name="description" label="Description" :value="$hero->description" rows="3" class="md:col-span-2" />
             <x-admin.field name="cta_text" label="Primary CTA text" :value="$hero->cta_text" />
             <x-admin.field name="cta_url" label="Primary CTA URL" :value="$hero->cta_url" placeholder="#enquiry-popup" help="Leave as #enquiry-popup to open the enquiry popup." />
-            <x-admin.field name="secondary_cta_text" label="Video button text" :value="$hero->secondary_cta_text" placeholder="Watch how we work" />
-            <x-admin.field name="video_url" label="“Watch video” URL (YouTube or MP4)" :value="$hero->video_url" help="Empty = plays the background video in the popup player." />
+            <x-admin.field name="secondary_cta_text" label="Secondary / video button text" :value="$hero->secondary_cta_text" placeholder="Watch how we work" />
+            <x-admin.field name="secondary_cta_url" label="Secondary button URL (when no video)" :value="$hero->secondary_cta_url" placeholder="/portfolio/" />
+            <x-admin.field name="video_url" label="“Watch video” URL (YouTube or MP4)" :value="$hero->video_url" help="Empty = plays the background video in the popup player." class="md:col-span-2" />
             <x-admin.field name="trust_text" label="Trust text" :value="$hero->trust_text" placeholder="4.9/5 from 120+ client reviews" class="md:col-span-2" />
             <x-admin.media-picker name="image_id" label="Hero image (right side, if form is off)" :media="$hero->image" />
             <x-admin.media-picker name="background_id" label="Banner image / video poster" :media="$hero->background" help="Shown instantly while the video loads (and on reduced-motion devices)." />
@@ -28,7 +29,62 @@
     </form>
 
     {{-- SECTIONS --}}
-    <form method="POST" action="{{ route('admin.home.sections') }}" class="a-card" x-data="{ open: null }">
+    <form method="POST" action="{{ route('admin.home.sections') }}" class="a-card" x-data="{
+        open: null,
+        thumbs: @js($mediaThumbs ?? (object) []),
+        pickerOpen: false,
+        pickerType: 'image',
+        pickerCb: null,
+        library: [],
+        nextUrl: null,
+        q: '',
+        loading: false,
+        uploading: false,
+        async loadLibrary(reset = true) {
+            this.loading = true;
+            const base = @js(route('admin.media.index'));
+            const url = reset ? `${base}?type=${this.pickerType}&q=${encodeURIComponent(this.q)}` : this.nextUrl;
+            if (!url) { this.loading = false; return; }
+            const res = await fetch(url, { headers: { Accept: 'application/json' } });
+            const json = await res.json();
+            this.library = reset ? json.data : [...this.library, ...json.data];
+            this.nextUrl = json.next;
+            this.loading = false;
+        },
+        openSectionPicker(type, cb) {
+            this.pickerType = type || 'image';
+            this.pickerCb = cb;
+            this.library = [];
+            this.nextUrl = null;
+            this.q = '';
+            this.pickerOpen = true;
+            this.loadLibrary(true);
+        },
+        selectSectionMedia(m) {
+            this.thumbs[m.id] = m.thumb;
+            if (typeof this.pickerCb === 'function') this.pickerCb(m);
+            this.pickerOpen = false;
+        },
+        async uploadSectionMedia(e) {
+            const files = [...e.target.files];
+            if (!files.length) return;
+            this.uploading = true;
+            const fd = new FormData();
+            files.forEach((f) => fd.append('files[]', f));
+            const token = document.querySelector('meta[name=csrf-token]')?.content || '';
+            const res = await fetch(@js(route('admin.media.store')), {
+                method: 'POST',
+                headers: { Accept: 'application/json', 'X-CSRF-TOKEN': token },
+                body: fd,
+            });
+            this.uploading = false;
+            if (!res.ok) { alert('Upload failed — check file type and size.'); return; }
+            const json = await res.json();
+            this.library = [...json.data, ...this.library];
+            if (json.data.length === 1) this.selectSectionMedia(json.data[0]);
+            e.target.value = '';
+        },
+    }">
         @csrf @method('PUT')
         <div class="a-card-h"><p class="a-card-t">Sections — drag to reorder, toggle visibility</p><button class="a-btn a-btn-primary a-btn-sm">Save sections</button></div>
         <ul class="divide-y divide-line" x-data="orderInputs">
@@ -50,6 +106,12 @@
 
                         @switch($s->key)
                             @case('hero')
+                                <div><label class="a-label">Video button subtext</label><input class="a-input" x-model="c.video_caption" placeholder="1 min overview"></div>
+                                <div><label class="a-label">Hero form badge</label><input class="a-input" x-model="c.form_badge" placeholder="Free consultation"></div>
+                                <div><label class="a-label">Hero form reply pill</label><input class="a-input" x-model="c.form_reply_badge" placeholder="Reply within 24h"></div>
+                                <div><label class="a-label">Hero form heading</label><input class="a-input" x-model="c.form_title" placeholder="Get your free growth plan"></div>
+                                <div><label class="a-label">Hero form subtitle</label><input class="a-input" x-model="c.form_subtitle" placeholder="Tell us what you need — a specialist will call you back."></div>
+                                <div><label class="a-label">Hero form button text</label><input class="a-input" x-model="c.form_button" placeholder="Get free consultation"></div>
                                 <div class="md:col-span-3">
                                     <p class="a-label">Stats bar under the hero</p>
                                     <template x-for="(row, i) in (c.stats ||= [])" :key="i">
@@ -61,23 +123,51 @@
                                     <textarea rows="4" class="a-input" :value="(c.ticker || []).join('\n')" @input="c.ticker = $event.target.value.split('\n').filter(Boolean)"></textarea></div>
                                 @break
                             @case('services')
-                                <div><label class="a-label">Feature tile image (media ID)</label><input type="number" class="a-input" x-model.number="c.image_id"></div>
+                                <div class="flex items-end gap-2 md:col-span-3">
+                                    <div class="grid size-12 shrink-0 place-items-center overflow-hidden rounded-lg border border-line bg-mist">
+                                        <img x-show="c.image_id && thumbs[c.image_id]" :src="thumbs[c.image_id]" class="size-full object-cover" alt="">
+                                        <x-icon x-show="!(c.image_id && thumbs[c.image_id])" name="image" class="size-5 text-slate-300" />
+                                    </div>
+                                    <div class="w-40"><label class="a-label">Feature tile image ID</label><input type="number" class="a-input" x-model.number="c.image_id"></div>
+                                    <button type="button" class="a-btn a-btn-light" @click="openSectionPicker('image', (m) => { c.image_id = m.id; })">Choose image</button>
+                                </div>
+                                <div><label class="a-label">Help strip title</label><input class="a-input" x-model="c.help_title" placeholder="Not sure which service you need?"></div>
+                                <div><label class="a-label">Help strip subtitle</label><input class="a-input" x-model="c.help_text" placeholder="Tell us your goal — we’ll recommend the right mix, free."></div>
+                                <div><label class="a-label">Help strip button text</label><input class="a-input" x-model="c.help_button_text" placeholder="Get expert advice"></div>
                                 @break
                             @case('promo')
-                                <div><label class="a-label">Image (media ID)</label><input type="number" class="a-input" x-model.number="c.image_id"></div>
+                                <div class="flex items-end gap-2">
+                                    <div class="grid size-11 shrink-0 place-items-center overflow-hidden rounded-lg border border-line bg-mist">
+                                        <img x-show="c.image_id && thumbs[c.image_id]" :src="thumbs[c.image_id]" class="size-full object-cover" alt="">
+                                        <x-icon x-show="!(c.image_id && thumbs[c.image_id])" name="image" class="size-4 text-slate-300" />
+                                    </div>
+                                    <div class="flex-1"><label class="a-label">Image (media ID)</label><input type="number" class="a-input" x-model.number="c.image_id"></div>
+                                    <button type="button" class="a-btn a-btn-light a-btn-sm" @click="openSectionPicker('image', (m) => { c.image_id = m.id; })">Choose</button>
+                                </div>
                                 <div><label class="a-label">Button text</label><input class="a-input" x-model="c.button_text" placeholder="Claim my free audit"></div>
+                                <div><label class="a-label">Button URL (empty = opens popup)</label><input class="a-input" x-model="c.button_url" placeholder="#enquiry-popup or /packages/"></div>
                                 <div><label class="a-label">Small note</label><input class="a-input" x-model="c.note" placeholder="Delivered within 48 hours"></div>
                                 <div><label class="a-label">Price label</label><input class="a-input" x-model="c.price_label" placeholder="Audit value"></div>
                                 <div><label class="a-label">Old price (strikethrough)</label><input class="a-input" x-model="c.price_old" placeholder="₹9,999 — leave empty to hide"></div>
                                 <div><label class="a-label">New price</label><input class="a-input" x-model="c.price_new" placeholder="FREE"></div>
                                 <div class="md:col-span-3"><label class="a-label">Points (one per line)</label>
                                     <textarea rows="3" class="a-input" :value="(c.points || []).join('\n')" @input="c.points = $event.target.value.split('\n').filter(Boolean)"></textarea></div>
-                                <p class="text-xs text-slate-500 md:col-span-3">The button opens the enquiry popup.</p>
                                 @break
                             @case('showreel')
-                                <div><label class="a-label">Cover image (media ID)</label><input type="number" class="a-input" x-model.number="c.image_id"></div>
-                                <div><label class="a-label">Video (media ID of an MP4)</label><input type="number" class="a-input" x-model.number="c.video_id"></div>
+                                <div class="flex items-end gap-2">
+                                    <div class="grid size-11 shrink-0 place-items-center overflow-hidden rounded-lg border border-line bg-mist">
+                                        <img x-show="c.image_id && thumbs[c.image_id]" :src="thumbs[c.image_id]" class="size-full object-cover" alt="">
+                                        <x-icon x-show="!(c.image_id && thumbs[c.image_id])" name="image" class="size-4 text-slate-300" />
+                                    </div>
+                                    <div class="flex-1"><label class="a-label">Cover image ID</label><input type="number" class="a-input" x-model.number="c.image_id"></div>
+                                    <button type="button" class="a-btn a-btn-light a-btn-sm" @click="openSectionPicker('image', (m) => { c.image_id = m.id; })">Choose</button>
+                                </div>
+                                <div class="flex items-end gap-2">
+                                    <div class="flex-1"><label class="a-label">Video (MP4 media ID)</label><input type="number" class="a-input" x-model.number="c.video_id"></div>
+                                    <button type="button" class="a-btn a-btn-light a-btn-sm" @click="openSectionPicker('video', (m) => { c.video_id = m.id; })">Choose MP4</button>
+                                </div>
                                 <div><label class="a-label">…or YouTube / MP4 URL</label><input class="a-input" x-model="c.video_url" placeholder="https://youtu.be/…"></div>
+                                <div class="md:col-span-3"><label class="a-label">Video overlay caption</label><input class="a-input" x-model="c.caption" placeholder="Strategy, design and engineering — under one roof."></div>
                                 <div class="md:col-span-3">
                                     <p class="a-label">Stat chips</p>
                                     <template x-for="(row, i) in (c.stats ||= [])" :key="i">
@@ -85,7 +175,6 @@
                                     </template>
                                     <button type="button" class="a-btn a-btn-light a-btn-sm" @click="(c.stats ||= []).push({})">+ Add stat</button>
                                 </div>
-                                <p class="text-xs text-slate-500 md:col-span-3">Find media IDs in <a href="{{ route('admin.media.index') }}" target="_blank" class="text-brand">Media Library ↗</a>.</p>
                                 @break
                             @case('stats')
                                 <div class="md:col-span-3">
@@ -97,7 +186,14 @@
                                 @break
                             @case('about')
                                 <div class="md:col-span-3"><label class="a-label">Text (HTML)</label><textarea rows="5" class="a-input" x-model="c.text"></textarea></div>
-                                <div><label class="a-label">Image media ID</label><input type="number" class="a-input" x-model.number="c.image_id"></div>
+                                <div class="flex items-end gap-2">
+                                    <div class="grid size-11 shrink-0 place-items-center overflow-hidden rounded-lg border border-line bg-mist">
+                                        <img x-show="c.image_id && thumbs[c.image_id]" :src="thumbs[c.image_id]" class="size-full object-cover" alt="">
+                                        <x-icon x-show="!(c.image_id && thumbs[c.image_id])" name="image" class="size-4 text-slate-300" />
+                                    </div>
+                                    <div class="flex-1"><label class="a-label">Image media ID</label><input type="number" class="a-input" x-model.number="c.image_id"></div>
+                                    <button type="button" class="a-btn a-btn-light a-btn-sm" @click="openSectionPicker('image', (m) => { c.image_id = m.id; })">Choose</button>
+                                </div>
                                 <div><label class="a-label">CTA text</label><input class="a-input" x-model="c.cta_text"></div>
                                 <div><label class="a-label">CTA URL</label><input class="a-input" x-model="c.cta_url"></div>
                                 <div><label class="a-label">Badge value</label><input class="a-input" x-model="c.badge_value" placeholder="10"></div>
@@ -115,6 +211,9 @@
                                     </template>
                                     <button type="button" class="a-btn a-btn-light a-btn-sm" @click="(c.steps ||= []).push({ icon: 'sparkles' })">+ Add step</button>
                                 </div>
+                                <div><label class="a-label">Bottom CTA text</label><input class="a-input" x-model="c.cta_text" placeholder="Start with a free consultation"></div>
+                                <div><label class="a-label">Bottom CTA URL (empty = popup)</label><input class="a-input" x-model="c.cta_url" placeholder="#enquiry-popup or /contact/"></div>
+                                <div><label class="a-label">Bottom note</label><input class="a-input" x-model="c.note" placeholder="No obligation · Reply within one business day"></div>
                                 @break
                             @case('technologies')
                                 <div class="md:col-span-3">
@@ -125,58 +224,7 @@
                                 </div>
                                 @break
                             @case('clients')
-                                <div class="md:col-span-3" x-data="{
-                                    thumbs: @js($mediaThumbs ?? (object) []),
-                                    pickerOpen: false,
-                                    activeIdx: null,
-                                    library: [],
-                                    nextUrl: null,
-                                    q: '',
-                                    loading: false,
-                                    uploading: false,
-                                    async loadLibrary(reset = true) {
-                                        this.loading = true;
-                                        const base = @js(route('admin.media.index'));
-                                        const url = reset ? `${base}?type=image&q=${encodeURIComponent(this.q)}` : this.nextUrl;
-                                        if (!url) { this.loading = false; return; }
-                                        const res = await fetch(url, { headers: { Accept: 'application/json' } });
-                                        const json = await res.json();
-                                        this.library = reset ? json.data : [...this.library, ...json.data];
-                                        this.nextUrl = json.next;
-                                        this.loading = false;
-                                    },
-                                    openPicker(i) {
-                                        this.activeIdx = i;
-                                        this.pickerOpen = true;
-                                        if (!this.library.length) this.loadLibrary(true);
-                                    },
-                                    selectMedia(m) {
-                                        if (this.activeIdx !== null && c.items?.[this.activeIdx]) {
-                                            c.items[this.activeIdx].logo_id = m.id;
-                                        }
-                                        this.thumbs[m.id] = m.thumb;
-                                        this.pickerOpen = false;
-                                    },
-                                    async uploadLogo(e) {
-                                        const files = [...e.target.files];
-                                        if (!files.length) return;
-                                        this.uploading = true;
-                                        const fd = new FormData();
-                                        files.forEach((f) => fd.append('files[]', f));
-                                        const token = document.querySelector('meta[name=csrf-token]')?.content || '';
-                                        const res = await fetch(@js(route('admin.media.store')), {
-                                            method: 'POST',
-                                            headers: { Accept: 'application/json', 'X-CSRF-TOKEN': token },
-                                            body: fd,
-                                        });
-                                        this.uploading = false;
-                                        if (!res.ok) { alert('Upload failed — check file type and size.'); return; }
-                                        const json = await res.json();
-                                        this.library = [...json.data, ...this.library];
-                                        if (json.data.length === 1) this.selectMedia(json.data[0]);
-                                        e.target.value = '';
-                                    },
-                                }">
+                                <div class="md:col-span-3">
                                     <p class="a-label mb-2">Client logos & website links</p>
                                     <template x-for="(row, i) in (c.items ||= [])" :key="i">
                                         <div class="mb-2.5 grid gap-2 rounded-xl border border-line bg-mist/40 p-2.5 md:grid-cols-[auto_1.2fr_1.8fr_110px_auto] md:items-center">
@@ -185,7 +233,7 @@
                                                     <img x-show="row.logo_id && thumbs[row.logo_id]" :src="thumbs[row.logo_id]" :alt="row.name || 'Client logo'" class="size-full object-contain p-1">
                                                     <x-icon x-show="!(row.logo_id && thumbs[row.logo_id])" name="image" class="size-4 text-slate-300" />
                                                 </div>
-                                                <button type="button" class="a-btn a-btn-light a-btn-sm shrink-0" @click="openPicker(i)">Choose icon</button>
+                                                <button type="button" class="a-btn a-btn-light a-btn-sm shrink-0" @click="openSectionPicker('image', (m) => { row.logo_id = m.id; })">Choose icon</button>
                                             </div>
                                             <input class="a-input" x-model="row.name" placeholder="Client name (e.g. AyurGrid)">
                                             <input class="a-input" x-model="row.url" placeholder="Website link (https://example.com)">
@@ -194,32 +242,6 @@
                                         </div>
                                     </template>
                                     <button type="button" class="a-btn a-btn-light a-btn-sm" @click="(c.items ||= []).push({ name: '', url: '', logo_id: null })">+ Add client</button>
-
-                                    {{-- Client Icon Media Picker Modal --}}
-                                    <div x-show="pickerOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4" @keydown.escape.window="pickerOpen = false">
-                                        <div class="flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl" @click.outside="pickerOpen = false">
-                                            <div class="flex flex-wrap items-center gap-2 border-b border-line p-4">
-                                                <p class="flex-1 font-semibold text-ink">Select client icon / logo</p>
-                                                <input type="search" x-model="q" @input.debounce.350ms="loadLibrary(true)" placeholder="Search…" class="a-input w-48">
-                                                <label class="a-btn a-btn-primary cursor-pointer">
-                                                    <x-icon name="plus" class="size-4" /> <span x-text="uploading ? 'Uploading…' : 'Upload'"></span>
-                                                    <input type="file" class="hidden" accept="image/*" @change="uploadLogo($event)">
-                                                </label>
-                                                <button type="button" class="a-btn a-btn-light" @click="pickerOpen = false">Close</button>
-                                            </div>
-                                            <div class="grid flex-1 grid-cols-3 gap-3 overflow-y-auto p-4 sm:grid-cols-5 lg:grid-cols-6">
-                                                <template x-for="m in library" :key="m.id">
-                                                    <button type="button" @click="selectMedia(m)" class="group flex flex-col overflow-hidden rounded-lg border-2 p-1.5 text-left transition"
-                                                            :class="(activeIdx !== null && c.items?.[activeIdx]?.logo_id === m.id) ? 'border-brand ring-2 ring-brand/30' : 'border-line hover:border-brand/50'">
-                                                        <img :src="m.thumb" :alt="m.alt" loading="lazy" class="aspect-video w-full object-contain">
-                                                        <span class="mt-1 truncate text-[0.68rem] text-slate-600" x-text="'#' + m.id + ' ' + m.filename"></span>
-                                                    </button>
-                                                </template>
-                                                <p x-show="!loading && !library.length" class="col-span-full py-10 text-center text-sm text-slate-500">No images found — upload a client icon.</p>
-                                            </div>
-                                            <div class="border-t border-line p-3 text-center" x-show="nextUrl"><button type="button" class="a-btn a-btn-light a-btn-sm" @click="loadLibrary(false)">Load more</button></div>
-                                        </div>
-                                    </div>
                                 </div>
                                 @break
                             @case('faq')
@@ -230,18 +252,61 @@
                                     </select>
                                 </div>
                                 @break
+                            @case('industries')
+                            @case('portfolio')
+                            @case('testimonials')
+                            @case('blogs')
+                                <div><label class="a-label">Max items to display</label><input type="number" min="1" max="24" class="a-input" x-model.number="c.limit" placeholder="Default"></div>
+                                <div><label class="a-label">Button text</label><input class="a-input" x-model="c.cta_text" placeholder="Default label"></div>
+                                <div><label class="a-label">Button URL</label><input class="a-input" x-model="c.cta_url" placeholder="Default URL or #enquiry-popup"></div>
+                                <p class="text-xs text-slate-500 md:col-span-3">Items in this section come from their own modules (Industries, Testimonials, Portfolio, Case Studies, Blogs).</p>
+                                @break
                             @case('cta')
                                 <div><label class="a-label">Button text</label><input class="a-input" x-model="c.button_text" placeholder="Get my free consultation"></div>
-                                <div><label class="a-label">Background image (media ID)</label><input type="number" class="a-input" x-model.number="c.image_id" placeholder="Defaults to the offer banner image"></div>
-                                <p class="text-xs text-slate-500 md:col-span-3">The button opens the enquiry popup.</p>
+                                <div><label class="a-label">Button URL (empty = opens popup)</label><input class="a-input" x-model="c.button_url" placeholder="#enquiry-popup or /contact/"></div>
+                                <div class="flex items-end gap-2">
+                                    <div class="grid size-11 shrink-0 place-items-center overflow-hidden rounded-lg border border-line bg-mist">
+                                        <img x-show="c.image_id && thumbs[c.image_id]" :src="thumbs[c.image_id]" class="size-full object-cover" alt="">
+                                        <x-icon x-show="!(c.image_id && thumbs[c.image_id])" name="image" class="size-4 text-slate-300" />
+                                    </div>
+                                    <div class="flex-1"><label class="a-label">Background image ID</label><input type="number" class="a-input" x-model.number="c.image_id" placeholder="Promo image fallback"></div>
+                                    <button type="button" class="a-btn a-btn-light a-btn-sm" @click="openSectionPicker('image', (m) => { c.image_id = m.id; })">Choose</button>
+                                </div>
+                                <div class="md:col-span-3"><label class="a-label">Note under buttons</label><input class="a-input" x-model="c.note" placeholder="Free consultation · Reply within one business day"></div>
                                 @break
                             @default
-                                <p class="text-xs text-slate-500 md:col-span-3">Items in this section come from their own modules (Services, Industries, Testimonials, Portfolio, Blogs).</p>
+                                <p class="text-xs text-slate-500 md:col-span-3">This section pulls live entries from its dedicated Admin module.</p>
                         @endswitch
                     </div>
                 </li>
             @endforeach
         </ul>
+
+        {{-- Shared Media Picker Modal for Homepage Sections --}}
+        <div x-show="pickerOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4" @keydown.escape.window="pickerOpen = false">
+            <div class="flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl" @click.outside="pickerOpen = false">
+                <div class="flex flex-wrap items-center gap-2 border-b border-line p-4">
+                    <p class="flex-1 font-semibold text-ink" x-text="pickerType === 'video' ? 'Select MP4 video from Media Library' : 'Select image / icon from Media Library'"></p>
+                    <input type="search" x-model="q" @input.debounce.350ms="loadLibrary(true)" placeholder="Search…" class="a-input w-48">
+                    <label class="a-btn a-btn-primary cursor-pointer">
+                        <x-icon name="plus" class="size-4" /> <span x-text="uploading ? 'Uploading…' : 'Upload'"></span>
+                        <input type="file" class="hidden" :accept="pickerType === 'video' ? 'video/mp4' : 'image/*'" @change="uploadSectionMedia($event)">
+                    </label>
+                    <button type="button" class="a-btn a-btn-light" @click="pickerOpen = false">Close</button>
+                </div>
+                <div class="grid flex-1 grid-cols-3 gap-3 overflow-y-auto p-4 sm:grid-cols-5 lg:grid-cols-6">
+                    <template x-for="m in library" :key="m.id">
+                        <button type="button" @click="selectSectionMedia(m)" class="group flex flex-col overflow-hidden rounded-lg border border-line p-1.5 text-left transition hover:border-brand">
+                            <img x-show="m.is_image" :src="m.thumb" :alt="m.alt" loading="lazy" class="aspect-video w-full object-contain bg-mist/40">
+                            <span x-show="!m.is_image" class="grid aspect-video w-full place-items-center bg-ink p-2 text-center text-[0.65rem] text-white" x-text="m.filename"></span>
+                            <span class="mt-1 truncate text-[0.68rem] text-slate-600" x-text="'#' + m.id + ' ' + m.filename"></span>
+                        </button>
+                    </template>
+                    <p x-show="!loading && !library.length" class="col-span-full py-10 text-center text-sm text-slate-500">No matching files — upload one above.</p>
+                </div>
+                <div class="border-t border-line p-3 text-center" x-show="nextUrl"><button type="button" class="a-btn a-btn-light a-btn-sm" @click="loadLibrary(false)">Load more</button></div>
+            </div>
+        </div>
     </form>
 </div>
 @endsection

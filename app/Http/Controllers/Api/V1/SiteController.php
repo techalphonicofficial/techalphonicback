@@ -143,6 +143,8 @@ class SiteController extends Controller
             $industryPages = $has('industries') ? LandingPage::published()->serviceIndustry()->orderBy('id')
                 ->get(['id', 'slug', 'industry_id', 'status', 'published_at'])->unique('industry_id')->keyBy('industry_id') : collect();
 
+            $sectionLimit = fn (string $k, int $default) => max(1, (int) ($sections->firstWhere('key', $k)?->get('limit') ?: $default));
+
             return [
                 'sections' => $sections->map(fn ($sec) => [
                     'key' => $sec->key,
@@ -170,7 +172,7 @@ class SiteController extends Controller
                     'showreel_url' => $hero->showreelUrl(),
                 ] : null,
                 'categories' => $has('services') ? ServiceCategory::published()->orderBy('sort_order')
-                    ->with(['services' => fn ($q) => $q->published()->reorder()->orderByDesc('is_featured')->orderBy('sort_order')])->get()
+                    ->with(['image', 'services' => fn ($q) => $q->published()->reorder()->orderByDesc('is_featured')->orderBy('sort_order')])->get()
                     ->map(fn ($c) => [
                         'name' => $c->name,
                         'slug' => $c->slug,
@@ -178,16 +180,17 @@ class SiteController extends Controller
                         'heading' => $c->heading,
                         'short_description' => $c->short_description,
                         'icon' => $c->icon,
+                        'image' => $this->present->media($c->image),
                         'url' => $c->url,
                         'services_count' => $c->services->count(),
                         'services' => $c->services->take(8)->map(fn ($s) => $this->present->serviceCard($s))->values()->all(),
                     ])->all() : [],
-                'industries' => $has('industries') ? Industry::active()->limit(10)->get()
+                'industries' => $has('industries') ? Industry::active()->with('image')->limit($sectionLimit('industries', 10))->get()
                     ->map(fn ($i) => $this->present->industry($i) + ['url' => $industryPages->get($i->id)?->url])->all() : [],
-                'testimonials' => $has('testimonials') ? Testimonial::active()->with('photo')->limit(8)->get()->map(fn ($t) => $this->present->testimonial($t))->all() : [],
-                'portfolio' => $has('portfolio') ? Portfolio::published()->with('featuredImage')->orderBy('sort_order')->limit(6)->get()->map(fn ($p) => $this->present->portfolioCard($p))->all() : [],
+                'testimonials' => $has('testimonials') ? Testimonial::active()->with('photo')->limit($sectionLimit('testimonials', 8))->get()->map(fn ($t) => $this->present->testimonial($t))->all() : [],
+                'portfolio' => $has('portfolio') ? Portfolio::published()->with('featuredImage')->orderBy('sort_order')->limit($sectionLimit('portfolio', 6))->get()->map(fn ($p) => $this->present->portfolioCard($p))->all() : [],
                 'case_studies' => $has('portfolio') ? CaseStudy::published()->with(['featuredImage', 'industry'])->orderBy('sort_order')->limit(3)->get()->map(fn ($c) => $this->present->caseStudyCard($c))->all() : [],
-                'blogs' => $has('blogs') ? Blog::published()->with(['featuredImage', 'category'])->latest('published_at')->limit(3)->get()->map(fn ($b) => $this->present->blogCard($b))->all() : [],
+                'blogs' => $has('blogs') ? Blog::published()->with(['featuredImage', 'category'])->orderByDesc('is_featured')->latest('published_at')->limit($sectionLimit('blogs', 3))->get()->map(fn ($b) => $this->present->blogCard($b))->all() : [],
                 'faqs' => $this->present->faqs($faqs),
                 'links' => [
                     'portfolio' => sroute('portfolio.index'),
@@ -383,7 +386,7 @@ class SiteController extends Controller
             'introduction' => $r($page->introduction),
             'content' => $r($page->content),
             'sections' => $r($page->sections ?? []),
-            'benefits' => $r($page->benefits ?: $service?->benefits ?? []),
+            'benefits' => $r($page->benefits ?: $page->industry?->benefits ?: $service?->benefits ?? []),
             'process' => $r($page->process ?: $service?->process ?? []),
             'why_choose_us' => $r($page->why_choose_us ?? []),
             'cta' => $r(array_filter($page->cta ?? []) + ['heading' => $service?->cta_heading, 'text' => $service?->cta_description]),
@@ -453,6 +456,7 @@ class SiteController extends Controller
                 'results' => $study->results,
                 'technologies' => $study->technologies ?: [],
                 'testimonial' => $study->testimonial ? $this->present->testimonial($study->testimonial) : null,
+                'gallery' => $study->galleryMedia()->map(fn ($m) => $this->present->media($m))->values()->all(),
             ],
             'contact_url' => slash_url('/contact'),
         ];
@@ -709,6 +713,11 @@ class SiteController extends Controller
             'name' => $location->display_name,
             'slug' => $location->slug,
             'city_slug' => $location->isArea() ? $location->city()?->slug : $location->slug,
+            'description' => $location->description,
+            'address' => $location->address,
+            'postal_code' => $location->postal_code,
+            'phone' => $location->phone,
+            'email' => $location->email,
         ];
     }
 
@@ -804,7 +813,7 @@ class SiteController extends Controller
 
     private function paginate($query, string $path): ?LengthAwarePaginator
     {
-        $posts = $query->with(['featuredImage', 'category', 'author'])->latest('published_at')->paginate(9)->withPath($path)->onEachSide(1);
+        $posts = $query->with(['featuredImage', 'category', 'author'])->orderByDesc('is_featured')->latest('published_at')->paginate(9)->withPath($path)->onEachSide(1);
 
         return $posts->currentPage() > 1 && $posts->isEmpty() ? null : $posts;
     }
