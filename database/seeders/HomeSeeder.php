@@ -52,7 +52,7 @@ class HomeSeeder extends Seeder
                     'Ecommerce Growth',
                 ],
             ]],
-            ['clients', 1, true, null, 'Our Valued Clients', null, [
+            ['clients', 1, true, 'Our Valued Clients', 'Trusted by Industry Leaders', 'Partnering with forward-thinking brands.', [
                 'items' => [
                     ['name' => 'AyurGrid', 'url' => 'https://ayurgrid.com/', 'logo_id' => 57],
                     ['name' => 'Lawgical', 'url' => 'https://www.lawgicalindia.com/', 'logo_id' => 58],

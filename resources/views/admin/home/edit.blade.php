@@ -99,9 +99,9 @@
                     </div>
                     <div x-show="open === '{{ $s->key }}'" x-collapse class="mt-4 grid gap-3 md:grid-cols-3">
                         @unless($s->key === 'hero')
-                            <x-admin.field :name="'sections['.$s->key.'][eyebrow]'" label="Eyebrow" :value="$s->eyebrow" />
-                            <x-admin.field :name="'sections['.$s->key.'][title]'" label="Title" :value="$s->title" class="md:col-span-2" />
-                            <x-admin.field :name="'sections['.$s->key.'][subtitle]'" label="Subtitle" :value="$s->subtitle" class="md:col-span-3" />
+                            <x-admin.field :name="'sections['.$s->key.'][eyebrow]'" label="Eyebrow" :value="$s->eyebrow" :placeholder="$s->key === 'clients' ? 'Our Valued Clients' : null" />
+                            <x-admin.field :name="'sections['.$s->key.'][title]'" label="Title" :value="$s->title" class="md:col-span-2" :placeholder="$s->key === 'clients' ? 'Trusted by Industry Leaders' : null" />
+                            <x-admin.field :name="'sections['.$s->key.'][subtitle]'" label="Subtitle" :value="$s->subtitle" class="md:col-span-3" :placeholder="$s->key === 'clients' ? 'Partnering with forward-thinking brands.' : null" />
                         @endunless
 
                         @switch($s->key)
