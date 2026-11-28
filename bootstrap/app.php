@@ -29,5 +29,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->respond(function (\Symfony\Component\HttpFoundation\Response $response, \Throwable $exception, \Illuminate\Http\Request $request) {
+            if ($response->getStatusCode() === 419 && ! $request->expectsJson()) {
+                return back(fallback: route('admin.login'))
+                    ->withInput($request->except('password', '_token'))
+                    ->withErrors(['email' => 'Your session expired. Please try again.']);
+            }
+
+            return $response;
+        });
     })->create();

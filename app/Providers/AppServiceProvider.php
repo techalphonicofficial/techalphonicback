@@ -34,7 +34,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // Every generated URL (sitemaps, canonicals, schema, menus) uses APP_URL — the public domain — rather than
         // whichever host the request came in on (the Next.js proxy and the API reach Laravel on its own host).
-        if ($root = rtrim((string) config('app.url'), '/')) {
+        // In local HTTP requests, keep the incoming host (127.0.0.1, localhost, or LAN IP) so session cookies and
+        // form actions stay on the same origin.
+        if (($root = rtrim((string) config('app.url'), '/')) && (! $this->app->isLocal() || $this->app->runningInConsole())) {
             URL::forceRootUrl($root);
             URL::forceScheme(parse_url($root, PHP_URL_SCHEME) ?: 'https');
         }
