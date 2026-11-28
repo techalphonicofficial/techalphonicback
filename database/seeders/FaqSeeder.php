@@ -45,7 +45,7 @@ class FaqSeeder extends Seeder
             ],
             [
                 'What is the reason Tech Alphonic is viewed as a reliable digital marketing partner in India?',
-                '<p>Tech Alphonic combines 7+ years of industry experience, AI-powered marketing tools, customized growth strategies, and transparent reporting to deliver measurable traffic, qualified leads, and higher conversions for clients across India and globally.</p>',
+                '<p>Tech Alphonic combines 10+ years of industry experience, AI-powered marketing tools, customized growth strategies, and transparent reporting to deliver measurable traffic, qualified leads, and higher conversions for clients across India and globally.</p>',
             ],
         ];
 

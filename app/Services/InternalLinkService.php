@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Enums\LandingPageType;
 use App\Models\Blog;
+use App\Models\CaseStudy;
 use App\Models\LandingPage;
 use App\Models\Page;
+use App\Models\Portfolio;
 use App\Models\Service;
 use App\Models\ServiceCategory;
 use Illuminate\Database\Eloquent\Model;
@@ -35,8 +37,9 @@ class InternalLinkService
         $groups += match (true) {
             $model instanceof LandingPage => $this->forLanding($model),
             $model instanceof Service => $this->forService($model),
-            $model instanceof ServiceCategory => [],
+            $model instanceof ServiceCategory => $this->forCategory($model),
             $model instanceof Blog => $this->forBlog($model),
+            $model instanceof Portfolio, $model instanceof CaseStudy => $this->forWork($model),
             $model instanceof Page => $this->forPage($model),
             default => [],
         };
@@ -74,8 +77,24 @@ class InternalLinkService
         $groups = [];
 
         if ($page->service) {
-            $groups[$page->service->name.' services'] = collect([['name' => $page->service->name, 'url' => $page->service->url]])
-                ->merge($page->service->children()->published()->limit(4)->get()->map(fn ($s) => $this->item($s)));
+            $svc = $page->service;
+            $relatedServices = collect([$this->item($svc)])
+                ->merge($svc->children()->published()->limit(self::CAP)->get()->map(fn ($s) => $this->item($s)))
+                ->merge(
+                    Service::published()
+                        ->where('service_category_id', $svc->service_category_id)
+                        ->whereKeyNot($svc->id)
+                        ->where(fn ($q) => $q->whereNull('parent_id')->orWhere('parent_id', $svc->parent_id ?: $svc->id))
+                        ->orderBy('sort_order')
+                        ->limit(self::CAP)
+                        ->get()
+                        ->map(fn ($s) => $this->item($s))
+                )
+                ->unique('url')
+                ->take(self::CAP)
+                ->values();
+
+            $groups['Related services'] = $relatedServices;
         }
 
         if ($page->location_id) {
@@ -121,9 +140,63 @@ class InternalLinkService
         return $groups;
     }
 
+    private function forCategory(ServiceCategory $category): array
+    {
+        $others = Service::published()
+            ->where('service_category_id', '!=', $category->id)
+            ->whereNull('parent_id')
+            ->orderBy('sort_order')
+            ->limit(self::CAP)
+            ->get()
+            ->map(fn ($s) => $this->item($s))
+            ->values();
+
+        return $others->isNotEmpty() ? ['Related services' => $others] : [];
+    }
+
     private function forBlog(Blog $blog): array
     {
-        return ['Related services' => $blog->services()->published()->limit(4)->get()->map(fn ($s) => $this->item($s))];
+        $linked = $blog->services()->published()->limit(4)->get();
+        if ($linked->count() < 4) {
+            $categoryIds = $linked->pluck('service_category_id')->filter()->unique()->values();
+            $fallback = Service::published()
+                ->when($linked->isNotEmpty(), fn ($q) => $q->whereNotIn('id', $linked->pluck('id')))
+                ->when($categoryIds->isNotEmpty(), fn ($q) => $q->orderByRaw('service_category_id IN ('.implode(',', $categoryIds->map('intval')->all()).') desc'))
+                ->orderByRaw('parent_id is null desc')
+                ->orderBy('sort_order')
+                ->limit(4 - $linked->count())
+                ->get();
+            $linked = $linked->merge($fallback)->unique('id')->take(4);
+        }
+
+        return ['Related services' => $linked->map(fn ($s) => $this->item($s))->values()];
+    }
+
+    private function forWork(Portfolio|CaseStudy $work): array
+    {
+        $service = $work->service;
+        $query = Service::published()->orderBy('sort_order');
+        if ($service) {
+            $items = collect([$this->item($service)])
+                ->merge(
+                    (clone $query)
+                        ->where('service_category_id', $service->service_category_id)
+                        ->whereKeyNot($service->id)
+                        ->whereNull('parent_id')
+                        ->limit(3)
+                        ->get()
+                        ->map(fn ($s) => $this->item($s))
+                )
+                ->unique('url')
+                ->take(4)
+                ->values();
+
+            return ['Related services' => $items];
+        }
+
+        return [
+            'Related services' => $query->whereNull('parent_id')->limit(4)->get()->map(fn ($s) => $this->item($s))->values(),
+        ];
     }
 
     private function forPage(Page $page): array

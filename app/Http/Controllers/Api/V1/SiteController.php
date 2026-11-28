@@ -341,7 +341,7 @@ class SiteController extends Controller
                 ? $this->blocks->one('case_studies', ['limit' => 3], $service)['extra']['studies'] : [],
             'testimonials' => Testimonial::active()->with('photo')->orderByRaw('service_id = ? desc', [$service->id])->limit(6)->get()->map(fn ($t) => $this->present->testimonial($t))->all(),
             'blogs' => $this->links->relatedBlogs($service)->map(fn ($b) => $this->present->blogCard($b))->values()->all(),
-            'children' => $service->children()->published()->get()->map(fn ($c) => ['name' => $c->menu_label ?: $c->name, 'url' => $c->url])->all(),
+            'children' => $service->children()->published()->get()->map(fn ($c) => ['name' => $c->menu_label ?: $c->name, 'url' => $c->url, 'icon' => $c->icon, 'description' => $c->short_description])->all(),
         ];
     }
 
@@ -672,7 +672,7 @@ class SiteController extends Controller
             'h1' => "{$serviceName} Company in [[{$locName}]]",
             'subheading' => "Trusted {$serviceName} Partner in {$locName}",
             'introduction' => "<p>Looking for a trusted {$serviceLower} company in <strong>{$locName}</strong>? {$siteName} partners with startups, growing SMBs, and enterprises across {$locName} ({$regionLabel}) to deliver measurable growth, qualified leads, and strong return on investment.</p>",
-            'content' => "<h2>Why Businesses in {$locName} Choose {$siteName} for {$serviceName}</h2><p>".e($service?->short_description ?: "At {$siteName}, we combine 7+ years of industry expertise, AI-driven insights, and proven execution to help brands in {$locName} dominate their market.")."</p>".($service?->content ?: ''),
+            'content' => "<h2>Why Businesses in {$locName} Choose {$siteName} for {$serviceName}</h2><p>".e($service?->short_description ?: "At {$siteName}, we combine 10+ years of industry expertise, AI-driven insights, and proven execution to help brands in {$locName} dominate their market.")."</p>".($service?->content ?: ''),
             'sections' => [
                 [
                     'heading' => "Our {$serviceName} Solutions in {$locName}",
@@ -687,7 +687,7 @@ class SiteController extends Controller
             ],
             'process' => $service?->process ?: [],
             'why_choose_us' => [
-                ['title' => '7+ Years of Proven Experience', 'text' => "Over 1,500+ projects delivered for clients across {$locName}, India, and global markets.", 'icon' => 'award'],
+                ['title' => '10+ Years of Proven Experience', 'text' => "Over 1,500+ projects delivered for clients across {$locName}, India, and global markets.", 'icon' => 'award'],
                 ['title' => 'Tailored Local & National Strategy', 'text' => "Custom roadmaps built around your industry, audience, and growth targets in {$locName}.", 'icon' => 'sliders'],
                 ['title' => 'Transparent Reporting & Support', 'text' => 'Clear weekly/monthly progress reports on rankings, traffic, leads, and conversions.', 'icon' => 'chart'],
             ],

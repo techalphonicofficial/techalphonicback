@@ -90,13 +90,13 @@ HTML,
                 'title' => 'SEO Company in Noida',
                 'h1' => 'SEO Company in Noida — [[Dominate Google & Grow Your Business]]',
                 'hero_subheading' => 'Noida’s Trusted SEO Partner',
-                'intro' => '<p>TechAlphonic is Noida’s trusted SEO company, working directly from Sector 63, Noida. We combine 7+ years of SEO expertise with the latest AI optimization techniques to help local businesses, startups, and enterprises rank on top of Google, drive qualified traffic, and turn visitors into real customers.</p>',
+                'intro' => '<p>TechAlphonic is Noida’s trusted SEO company, working directly from Sector 63, Noida. We combine 10+ years of SEO expertise with the latest AI optimization techniques to help local businesses, startups, and enterprises rank on top of Google, drive qualified traffic, and turn visitors into real customers.</p>',
                 'content' => <<<'HTML'
 <h2>Why SEO Is Essential for Your Noida Business</h2>
 <p>Today’s AI-driven search landscape requires more than basic keyword stuffing to achieve high rankings — it requires strategy, search intent alignment, and technical excellence. You can secure resilient website rankings and high-quality visitors with Tech Alphonic’s tailored Noida SEO packages for startups, SMEs, and enterprises.</p>
 <p>By utilizing proven white-hat SEO methods, AI-enabled tools, and hands-on knowledge of the Noida and Delhi-NCR market, we ensure your brand stays ahead across Google Search, Google Maps, ChatGPT, and AI Overviews.</p>
 <ul>
-    <li><strong>7+ Years of SEO Experience:</strong> Proven track record across diverse industries in Noida, Greater Noida, and NCR.</li>
+    <li><strong>10+ Years of SEO Experience:</strong> Proven track record across diverse industries in Noida, Greater Noida, and NCR.</li>
     <li><strong>Results-Oriented Execution:</strong> Data-driven SEO strategies built around measurable traffic and lead growth.</li>
     <li><strong>Tailored SEO Packages:</strong> Custom plans starting from Starter and Growth to Enterprise SEO.</li>
     <li><strong>Traffic-to-Leads Optimization:</strong> Conversion-focused landing pages that turn search visitors into business enquiries.</li>

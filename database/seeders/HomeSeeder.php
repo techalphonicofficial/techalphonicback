@@ -20,7 +20,7 @@ class HomeSeeder extends Seeder
             'cta_url' => '#enquiry-popup',
             'secondary_cta_text' => 'Watch how we work',
             'secondary_cta_url' => null,
-            'badge' => 'IT Solution Provider · 7+ Years of Trust',
+            'badge' => 'IT Solution Provider · 10+ Years of Trust',
             'trust_text' => '1500+ Projects Completed · 60+ Team Members · 100% Client Satisfaction',
             'image_id' => $existingHero?->image_id,
             'background_id' => $existingHero?->background_id ?? 3,
@@ -35,7 +35,7 @@ class HomeSeeder extends Seeder
             // [key, order, visible, eyebrow, title, subtitle, content]
             ['hero', 0, true, null, null, null, [
                 'stats' => [
-                    ['value' => '7', 'suffix' => '+', 'label' => 'Years of experience'],
+                    ['value' => '10', 'suffix' => '+', 'label' => 'Years of experience'],
                     ['value' => '1500', 'suffix' => '+', 'label' => 'Projects completed'],
                     ['value' => '60', 'suffix' => '+', 'label' => 'Team members'],
                     ['value' => '100', 'suffix' => '%', 'label' => 'Client satisfaction'],
@@ -93,7 +93,7 @@ class HomeSeeder extends Seeder
                 ],
                 'cta_text' => 'More About Us',
                 'cta_url' => '/about-us/',
-                'badge_value' => '7',
+                'badge_value' => '10',
                 'badge_suffix' => '+',
                 'badge_label' => 'Years of Trust',
                 'image_id' => 4,
@@ -152,7 +152,7 @@ class HomeSeeder extends Seeder
             ]],
             ['stats', 14, false, null, 'Our numbers', null, [
                 'items' => [
-                    ['value' => '7', 'suffix' => '+', 'label' => 'Years of Trust'],
+                    ['value' => '10', 'suffix' => '+', 'label' => 'Years of Trust'],
                     ['value' => '1500', 'suffix' => '+', 'label' => 'Projects Completed'],
                     ['value' => '60', 'suffix' => '+', 'label' => 'Team Members'],
                     ['value' => '100', 'suffix' => '%', 'label' => 'Client Satisfaction'],

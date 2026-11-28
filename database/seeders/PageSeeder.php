@@ -19,11 +19,11 @@ class PageSeeder extends Seeder
     public function run(): void
     {
         $this->page('about-us', 'About Us', 'Empowering [[Digital Growth]]', 'about', [
-            'hero_subheading' => 'Quality Marketing Solutions · 7+ Years of Trust',
-            'excerpt' => 'At Tech Alphonic, we transform your vision into digital success for the business. Being one of the most reputed IT solutions providers, we bring over seven years of industry knowledge in providing custom-made services in Web & App Development, Digital Marketing, ERP Solutions, and other domains. Our seasoned professionals take an innovative, holistic approach to projects so that we do not merely satisfy your expectations, we exceed them.',
+            'hero_subheading' => 'Quality Marketing Solutions · 10+ Years of Trust',
+            'excerpt' => 'At Tech Alphonic, we transform your vision into digital success for the business. Being one of the most reputed IT solutions providers, we bring over 10 years of industry knowledge in providing custom-made services in Web & App Development, Digital Marketing, ERP Solutions, and other domains. Our seasoned professionals take an innovative, holistic approach to projects so that we do not merely satisfy your expectations, we exceed them.',
             'content' => <<<'HTML'
 <h2>About Tech Alphonic — Transforming Your Vision Into Digital Success</h2>
-<p>At Tech Alphonic, we transform your vision into digital success for the business. Being one of the most reputed IT solutions providers, we bring over seven years of industry knowledge in providing custom-made services in Web &amp; App Development, Digital Marketing, ERP Solutions, and other domains. Our seasoned professionals take an innovative, holistic approach to projects so that we do not merely satisfy your expectations, we exceed them.</p>
+<p>At Tech Alphonic, we transform your vision into digital success for the business. Being one of the most reputed IT solutions providers, we bring over 10 years of industry knowledge in providing custom-made services in Web &amp; App Development, Digital Marketing, ERP Solutions, and other domains. Our seasoned professionals take an innovative, holistic approach to projects so that we do not merely satisfy your expectations, we exceed them.</p>
 
 <h2>Pathway to Success: Elevating Progress With Results-Oriented Strategies</h2>
 <p>At Tech Alphonic, we leverage cutting-edge solutions to propel your business forward. Using the latest communication technology, we foster seamless interactions and build dynamic designs that captivate and convert. Our innovative engagement solutions are tailored to create meaningful connections and drive sustained growth for your brand.</p>
@@ -45,13 +45,13 @@ class PageSeeder extends Seeder
 <p>Artificial intelligence is changing the whole marketing playbook for companies right now. By blending AI tools with strategic marketing thinking, we help brands make smarter calls and hit better results through <strong>advanced data analysis</strong>, <strong>customer journey mapping</strong>, <strong>predictive marketing</strong>, and <strong>automated campaign management</strong>.</p>
 HTML,
             'meta_title' => 'About Tech Alphonic — Empowering Digital Growth | IT & Digital Marketing Partner',
-            'meta_description' => 'At Tech Alphonic, we transform your vision into digital success with 7+ years of trust, 1500+ projects completed, and 60+ team members in Web & App Development and Digital Marketing.',
+            'meta_description' => 'At Tech Alphonic, we transform your vision into digital success with 10+ years of trust, 1500+ projects completed, and 60+ team members in Web & App Development and Digital Marketing.',
         ], [
             [self::BLOCK_STATISTICS, [
                 'heading' => 'Tech Alphonic in numbers',
                 'background' => 'mist',
                 'items' => [
-                    ['value' => '7', 'suffix' => '+', 'title' => 'Years of Trust'],
+                    ['value' => '10', 'suffix' => '+', 'title' => 'Years of Trust'],
                     ['value' => '1500', 'suffix' => '+', 'title' => 'Projects Completed'],
                     ['value' => '60', 'suffix' => '+', 'title' => 'Team Members'],
                     ['value' => '100', 'suffix' => '%', 'title' => 'Client Satisfaction'],
@@ -93,7 +93,7 @@ HTML,
                 'heading' => '',
                 'background' => 'white',
                 'items' => [
-                    ['value' => '7', 'suffix' => '+', 'title' => 'Years of Experience'],
+                    ['value' => '10', 'suffix' => '+', 'title' => 'Years of Experience'],
                     ['value' => '1.5k', 'suffix' => '', 'title' => 'Projects Completed'],
                     ['value' => '60', 'suffix' => '+', 'title' => 'Team of Experts'],
                     ['value' => '100', 'suffix' => '%', 'title' => 'Satisfied Clients'],
@@ -584,7 +584,7 @@ HTML,
                     ['icon' => 'file-text', 'title' => 'Transparent Reporting', 'text' => "Weekly and monthly reports with clear ranking, traffic, lead, and revenue metrics. You always know what's happening."],
                     ['icon' => 'shield-check', 'title' => 'No Long-Term Lock-in', 'text' => 'Flexible month-to-month plans with zero hidden fees. Cancel anytime with a 30-day notice. We earn your trust every month.'],
                     ['icon' => 'sparkles', 'title' => 'AI-Powered Strategies', 'text' => 'We leverage cutting-edge AI tools for SEO, content creation, and ad optimization to keep you ahead of competitors.'],
-                    ['icon' => 'award', 'title' => 'Industry Expertise', 'text' => '7+ years across 20+ industries — healthcare, e-commerce, real estate, finance, education, logistics, and SaaS.'],
+                    ['icon' => 'award', 'title' => 'Industry Expertise', 'text' => '10+ years across 20+ industries — healthcare, e-commerce, real estate, finance, education, logistics, and SaaS.'],
                 ],
             ]],
             [self::BLOCK_TESTIMONIALS, [
@@ -627,7 +627,7 @@ HTML,
 </ol>
 
 <h2>Why Businesses Trust TechAlphonic for Industry SEO</h2>
-<p>Over 7 years of specialized SEO experience across 30+ verticals in India and globally:</p>
+<p>Over 10 years of specialized SEO experience across 30+ verticals in India and globally:</p>
 <ul>
     <li><strong>Dedicated Industry SEO Specialists:</strong> Your account is managed by an SEO strategist with hands-on experience in your specific vertical — not a generalist handling 30 random accounts.</li>
     <li><strong>Local + National Industry SEO:</strong> Whether you serve one city or operate nationwide, we build geo-targeted and national industry strategies that put you ahead in every market you serve.</li>

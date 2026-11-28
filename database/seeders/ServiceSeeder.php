@@ -15,10 +15,10 @@ class ServiceSeeder extends Seeder
             'name' => 'Digital Marketing',
             'menu_label' => 'Digital Marketing',
             'h1' => 'AI-Driven [[Digital Marketing Services]] in India',
-            'short_description' => 'Exceptional Digital Marketing Agency & Company in India. With more than 7 years of expertise, we offer customized, data-driven digital marketing strategies tailored around your business goals to grow your online presence and maximize ROI.',
+            'short_description' => 'Exceptional Digital Marketing Agency & Company in India. With more than 10 years of expertise, we offer customized, data-driven digital marketing strategies tailored around your business goals to grow your online presence and maximize ROI.',
             'description' => <<<'HTML'
 <h2>Exceptional Digital Marketing Agency &amp; Company in India</h2>
-<p>With more than 7 years of expertise, Tech Alphonic is a full-service digital marketing agency in Noida, India helping businesses of all sizes increase their online presence and maximize ROI. We design specific, data-driven strategies around your business goals rather than one-size-fits-all templates.</p>
+<p>With more than 10 years of expertise, Tech Alphonic is a full-service digital marketing agency in Noida, India helping businesses of all sizes increase their online presence and maximize ROI. We design specific, data-driven strategies around your business goals rather than one-size-fits-all templates.</p>
 <h3>Key Service Highlights</h3>
 <ul>
     <li><strong>Search Engine Optimization (SEO):</strong> Optimize your website for higher rankings, increased organic traffic, and qualified leads.</li>
