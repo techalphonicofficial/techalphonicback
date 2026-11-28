@@ -54,14 +54,14 @@ class HomeSeeder extends Seeder
             ]],
             ['clients', 1, true, null, 'Our Valued Clients', null, [
                 'items' => [
-                    ['name' => 'AyurGrid', 'logo_id' => 57],
-                    ['name' => 'Lawgical', 'logo_id' => 58],
-                    ['name' => 'Kitchen Fix Solution', 'logo_id' => 59],
-                    ['name' => 'Desi Guru', 'logo_id' => 60],
-                    ['name' => 'Chardham Yatra', 'logo_id' => 61],
-                    ['name' => 'Services Plus', 'logo_id' => 62],
-                    ['name' => 'Com-Paint', 'logo_id' => 63],
-                    ['name' => 'Enlive', 'logo_id' => 64],
+                    ['name' => 'AyurGrid', 'url' => 'https://ayurgrid.com/', 'logo_id' => 57],
+                    ['name' => 'Lawgical', 'url' => 'https://www.lawgicalindia.com/', 'logo_id' => 58],
+                    ['name' => 'Kitchen Fix Solution', 'url' => 'https://kitchenfixsolution.com/', 'logo_id' => 59],
+                    ['name' => 'Desi Guru', 'url' => 'https://desigurudrivingschool.com/', 'logo_id' => 60],
+                    ['name' => 'Chardham Yatra', 'url' => 'https://chardhamyatra.org/', 'logo_id' => 61],
+                    ['name' => 'Services Plus', 'url' => 'https://www.servicesplus.in/', 'logo_id' => 62],
+                    ['name' => 'Com-Paint', 'url' => 'https://www.com-paint.com/', 'logo_id' => 63],
+                    ['name' => 'Enlive', 'url' => 'https://www.enlivetrips.com/', 'logo_id' => 64],
                 ],
             ]],
             ['services', 2, true, 'Our Expertise', 'Digital Marketing & Technology Services [[Built for Growth]]', 'From search visibility to custom software, Tech Alphonic brings every growth channel under one roof. We combine data, AI and hands-on experience to build strategies that fit your business, not a generic template.', [

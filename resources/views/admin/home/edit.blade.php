@@ -125,11 +125,101 @@
                                 </div>
                                 @break
                             @case('clients')
-                                <div class="md:col-span-3">
+                                <div class="md:col-span-3" x-data="{
+                                    thumbs: @js($mediaThumbs ?? (object) []),
+                                    pickerOpen: false,
+                                    activeIdx: null,
+                                    library: [],
+                                    nextUrl: null,
+                                    q: '',
+                                    loading: false,
+                                    uploading: false,
+                                    async loadLibrary(reset = true) {
+                                        this.loading = true;
+                                        const base = @js(route('admin.media.index'));
+                                        const url = reset ? `${base}?type=image&q=${encodeURIComponent(this.q)}` : this.nextUrl;
+                                        if (!url) { this.loading = false; return; }
+                                        const res = await fetch(url, { headers: { Accept: 'application/json' } });
+                                        const json = await res.json();
+                                        this.library = reset ? json.data : [...this.library, ...json.data];
+                                        this.nextUrl = json.next;
+                                        this.loading = false;
+                                    },
+                                    openPicker(i) {
+                                        this.activeIdx = i;
+                                        this.pickerOpen = true;
+                                        if (!this.library.length) this.loadLibrary(true);
+                                    },
+                                    selectMedia(m) {
+                                        if (this.activeIdx !== null && c.items?.[this.activeIdx]) {
+                                            c.items[this.activeIdx].logo_id = m.id;
+                                        }
+                                        this.thumbs[m.id] = m.thumb;
+                                        this.pickerOpen = false;
+                                    },
+                                    async uploadLogo(e) {
+                                        const files = [...e.target.files];
+                                        if (!files.length) return;
+                                        this.uploading = true;
+                                        const fd = new FormData();
+                                        files.forEach((f) => fd.append('files[]', f));
+                                        const token = document.querySelector('meta[name=csrf-token]')?.content || '';
+                                        const res = await fetch(@js(route('admin.media.store')), {
+                                            method: 'POST',
+                                            headers: { Accept: 'application/json', 'X-CSRF-TOKEN': token },
+                                            body: fd,
+                                        });
+                                        this.uploading = false;
+                                        if (!res.ok) { alert('Upload failed — check file type and size.'); return; }
+                                        const json = await res.json();
+                                        this.library = [...json.data, ...this.library];
+                                        if (json.data.length === 1) this.selectMedia(json.data[0]);
+                                        e.target.value = '';
+                                    },
+                                }">
+                                    <p class="a-label mb-2">Client logos & website links</p>
                                     <template x-for="(row, i) in (c.items ||= [])" :key="i">
-                                        <div class="mb-2 grid grid-cols-[2fr_1fr_auto] gap-2"><input class="a-input" x-model="row.name" placeholder="Client name"><input type="number" class="a-input" x-model.number="row.logo_id" placeholder="Logo media ID"><button type="button" class="text-red-500" @click="c.items.splice(i, 1)">✕</button></div>
+                                        <div class="mb-2.5 grid gap-2 rounded-xl border border-line bg-mist/40 p-2.5 md:grid-cols-[auto_1.2fr_1.8fr_110px_auto] md:items-center">
+                                            <div class="flex items-center gap-2">
+                                                <div class="grid size-10 shrink-0 place-items-center overflow-hidden rounded-lg border border-line bg-white">
+                                                    <img x-show="row.logo_id && thumbs[row.logo_id]" :src="thumbs[row.logo_id]" :alt="row.name || 'Client logo'" class="size-full object-contain p-1">
+                                                    <x-icon x-show="!(row.logo_id && thumbs[row.logo_id])" name="image" class="size-4 text-slate-300" />
+                                                </div>
+                                                <button type="button" class="a-btn a-btn-light a-btn-sm shrink-0" @click="openPicker(i)">Choose icon</button>
+                                            </div>
+                                            <input class="a-input" x-model="row.name" placeholder="Client name (e.g. AyurGrid)">
+                                            <input class="a-input" x-model="row.url" placeholder="Website link (https://example.com)">
+                                            <input type="number" class="a-input" x-model.number="row.logo_id" placeholder="Media ID">
+                                            <button type="button" class="px-2 text-red-500 hover:text-red-700" @click="c.items.splice(i, 1)" title="Remove client">✕</button>
+                                        </div>
                                     </template>
-                                    <button type="button" class="a-btn a-btn-light a-btn-sm" @click="(c.items ||= []).push({})">+ Add client</button>
+                                    <button type="button" class="a-btn a-btn-light a-btn-sm" @click="(c.items ||= []).push({ name: '', url: '', logo_id: null })">+ Add client</button>
+
+                                    {{-- Client Icon Media Picker Modal --}}
+                                    <div x-show="pickerOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4" @keydown.escape.window="pickerOpen = false">
+                                        <div class="flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl" @click.outside="pickerOpen = false">
+                                            <div class="flex flex-wrap items-center gap-2 border-b border-line p-4">
+                                                <p class="flex-1 font-semibold text-ink">Select client icon / logo</p>
+                                                <input type="search" x-model="q" @input.debounce.350ms="loadLibrary(true)" placeholder="Search…" class="a-input w-48">
+                                                <label class="a-btn a-btn-primary cursor-pointer">
+                                                    <x-icon name="plus" class="size-4" /> <span x-text="uploading ? 'Uploading…' : 'Upload'"></span>
+                                                    <input type="file" class="hidden" accept="image/*" @change="uploadLogo($event)">
+                                                </label>
+                                                <button type="button" class="a-btn a-btn-light" @click="pickerOpen = false">Close</button>
+                                            </div>
+                                            <div class="grid flex-1 grid-cols-3 gap-3 overflow-y-auto p-4 sm:grid-cols-5 lg:grid-cols-6">
+                                                <template x-for="m in library" :key="m.id">
+                                                    <button type="button" @click="selectMedia(m)" class="group flex flex-col overflow-hidden rounded-lg border-2 p-1.5 text-left transition"
+                                                            :class="(activeIdx !== null && c.items?.[activeIdx]?.logo_id === m.id) ? 'border-brand ring-2 ring-brand/30' : 'border-line hover:border-brand/50'">
+                                                        <img :src="m.thumb" :alt="m.alt" loading="lazy" class="aspect-video w-full object-contain">
+                                                        <span class="mt-1 truncate text-[0.68rem] text-slate-600" x-text="'#' + m.id + ' ' + m.filename"></span>
+                                                    </button>
+                                                </template>
+                                                <p x-show="!loading && !library.length" class="col-span-full py-10 text-center text-sm text-slate-500">No images found — upload a client icon.</p>
+                                            </div>
+                                            <div class="border-t border-line p-3 text-center" x-show="nextUrl"><button type="button" class="a-btn a-btn-light a-btn-sm" @click="loadLibrary(false)">Load more</button></div>
+                                        </div>
+                                    </div>
                                 </div>
                                 @break
                             @case('faq')

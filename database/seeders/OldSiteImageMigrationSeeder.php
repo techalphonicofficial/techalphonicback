@@ -179,6 +179,20 @@ class OldSiteImageMigrationSeeder extends Seeder
         'dev-pair.jpg' => 'db:seeders/media/dev-pair.jpg',
     ];
 
+    /**
+     * Verified official website URLs for the 8 Valued Clients logos.
+     */
+    private const CLIENT_URLS = [
+        'AyurGrid' => 'https://ayurgrid.com/',
+        'Lawgical' => 'https://www.lawgicalindia.com/',
+        'Kitchen Fix Solution' => 'https://kitchenfixsolution.com/',
+        'Desi Guru' => 'https://desigurudrivingschool.com/',
+        'Chardham Yatra' => 'https://chardhamyatra.org/',
+        'Services Plus' => 'https://www.servicesplus.in/',
+        'Com-Paint' => 'https://www.com-paint.com/',
+        'Enlive' => 'https://www.enlivetrips.com/',
+    ];
+
     public function run(): void
     {
         if (app()->runningUnitTests()) {
@@ -242,6 +256,27 @@ class OldSiteImageMigrationSeeder extends Seeder
             'image_id' => $ids['showreel_team'] ?? null,
             'video_id' => $mp4VideoId,
         ]));
+
+        // Populate verified website URLs for Valued Clients without overwriting custom admin-set links
+        $clientsSection = HomeSection::where('key', 'clients')->first();
+        if ($clientsSection && is_array($clientsSection->content['items'] ?? null)) {
+            $updated = false;
+            $items = array_map(function ($item) use (&$updated) {
+                $name = $item['name'] ?? null;
+                if ($name && empty($item['url']) && isset(self::CLIENT_URLS[$name])) {
+                    $item['url'] = self::CLIENT_URLS[$name];
+                    $updated = true;
+                }
+
+                return $item;
+            }, $clientsSection->content['items']);
+
+            if ($updated) {
+                $clientsSection->update([
+                    'content' => array_merge($clientsSection->content, ['items' => $items]),
+                ]);
+            }
+        }
 
         // 4. CMS Pages
         if (isset($ids['about_collaboration'])) {
